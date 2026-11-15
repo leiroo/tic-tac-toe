@@ -1,18 +1,23 @@
 import GameBoard from "@/components/game/GameBoard";
 import GameStatus from "@/components/game/GameStatus";
-import type { BoardResult, RoundState, SymbolPreset } from "@/types/game";
+import ScoreBoard from "@/components/game/ScoreBoard";
+import GameControls from "@/components/game/GameControls";
+import type { BoardResult, ModeScores, RoundState, SymbolPreset } from "@/types/game";
 
 type GameScreenProps = {
   modeName: string;
   preset: SymbolPreset;
   round: RoundState;
   result: BoardResult;
+  scores: ModeScores;
+  onNewRound: () => void;
+  onResetScores: () => void;
   onMove: (index: number) => void;
   onBack: () => void;
   onChangeMode: () => void;
 };
 
-export default function GameScreen({ modeName, preset, round, result, onMove, onBack, onChangeMode }: GameScreenProps) {
+export default function GameScreen({ modeName, preset, round, result, scores, onNewRound, onResetScores, onMove, onBack, onChangeMode }: GameScreenProps) {
   const isPlayable = round.mode === "friend";
 
   return (
@@ -49,7 +54,13 @@ export default function GameScreen({ modeName, preset, round, result, onMove, on
               </dd>
             </div>
           </dl>
-          <button type="button" onClick={onChangeMode} className="button-secondary mt-8 w-full">Change Mode</button>
+          <ScoreBoard mode={round.mode} scores={scores} />
+          <GameControls
+            completed={result.winner !== null || result.isDraw}
+            onNewRound={onNewRound}
+            onResetScores={onResetScores}
+            onChangeMode={onChangeMode}
+          />
         </aside>
       </div>
     </section>

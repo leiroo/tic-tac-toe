@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { gameReducer } from "./useTicTacToe";
+import { createInitialGameState, gameReducer as reduceGame, type GameAction } from "./useTicTacToe";
 import { analyzeBoard } from "@/lib/gameLogic";
 import type { GameMode, RoundState, SymbolPresetId } from "@/types/game";
+
+// Keep the M3 round assertions; scoring.test.ts checks the full session state.
+function gameReducer(round: RoundState | null, action: GameAction): RoundState | null {
+  return reduceGame({ ...createInitialGameState(), round }, action).round;
+}
 
 function startRound(mode: GameMode = "friend", presetId: SymbolPresetId = "classic"): RoundState {
   return gameReducer(null, { type: "start", mode, presetId })!;
@@ -17,7 +22,7 @@ describe("Friend round transitions", () => {
   it("starts with X, an empty board, and the chosen configuration", () => {
     const state = startRound("friend", "love-stars");
     expect(state).toEqual({
-      board: Array(9).fill(null), turn: "X", mode: "friend", presetId: "love-stars",
+      board: Array(9).fill(null), turn: "X", mode: "friend", presetId: "love-stars", scoreCredit: null,
     });
   });
 

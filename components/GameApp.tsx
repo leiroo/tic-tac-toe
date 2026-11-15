@@ -8,6 +8,7 @@ import GameScreen from "@/components/screens/GameScreen";
 import { gameModes } from "@/data/gameModes";
 import { symbolPresets } from "@/data/symbolPresets";
 import useTicTacToe from "@/hooks/useTicTacToe";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import type { GameMode, Screen, SymbolPresetId } from "@/types/game";
 
 export default function GameApp() {
@@ -16,6 +17,7 @@ export default function GameApp() {
   const [selectedPresetId, setSelectedPresetId] = useState<SymbolPresetId>("classic");
   const mainRef = useRef<HTMLElement>(null);
   const game = useTicTacToe();
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   // Derive display data from the selected IDs instead of duplicating state.
   const mode = gameModes.find((item) => item.id === selectedMode)!;
@@ -80,12 +82,23 @@ export default function GameApp() {
             preset={preset}
             round={game.round}
             result={game.result}
+            scores={game.scores[game.round.mode]}
+            onNewRound={game.newRound}
+            onResetScores={() => setShowResetDialog(true)}
             onMove={game.playMove}
             onBack={() => leaveGame("setup")}
             onChangeMode={() => leaveGame("modes")}
           />
         )}
       </main>
+
+      {showResetDialog && (
+        <ConfirmDialog
+          modeName={mode.name}
+          onCancel={() => setShowResetDialog(false)}
+          onConfirm={() => { game.resetScores(); setShowResetDialog(false); }}
+        />
+      )}
 
       <footer className="mx-auto w-full max-w-5xl px-5 py-6 text-xs text-muted sm:px-8">
         <div className="border-t border-muted/15 pt-5">Three ways to play. One classic board.</div>
