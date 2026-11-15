@@ -1,22 +1,26 @@
-import type { BoardResult, Player, SymbolPreset } from "@/types/game";
+import type { BoardResult, GameMode, Player, SymbolPreset } from "@/types/game";
 
 type GameStatusProps = {
-  isPlayable: boolean;
+  mode: GameMode;
   turn: Player;
   result: BoardResult;
   preset: SymbolPreset;
 };
 
-export default function GameStatus({ isPlayable, turn, result, preset }: GameStatusProps) {
+export default function GameStatus({ mode, turn, result, preset }: GameStatusProps) {
   let message = "Board preview. Gameplay is coming soon.";
 
-  if (isPlayable) {
+  if (mode !== "practice") {
     if (result.winner) {
-      message = `Player ${result.winner === "X" ? "1" : "2"} Wins!`;
+      message = mode === "computer"
+        ? result.winner === "X" ? "You Win!" : "Computer Wins!"
+        : `Player ${result.winner === "X" ? "1" : "2"} Wins!`;
     } else if (result.isDraw) {
       message = "It's a Draw!";
     } else {
-      message = `Player ${turn === "X" ? "1" : "2"}'s turn (${preset.symbols[turn]})`;
+      message = mode === "computer"
+        ? turn === "X" ? "Your Turn" : "Computer is thinking..."
+        : `Player ${turn === "X" ? "1" : "2"}'s turn (${preset.symbols[turn]})`;
     }
   }
 

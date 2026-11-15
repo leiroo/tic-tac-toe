@@ -8,7 +8,7 @@ M1 provides project configuration. M2 adds Home → Mode Selection → Game Setu
 
 M3 makes **Play vs Friend** playable: X starts, turns alternate, all eight winning patterns and draws are detected, winning cells are highlighted, and completed rounds reject moves. Presets change the displayed symbols only.
 
-M4 adds independent session scores for all three modes, New Round/Play Again, and confirmed Reset Scores. Computer and Practice remain non-playable previews; AI and Undo are not implemented. The project is not deployed.
+M4 adds independent session scores for all three modes, New Round/Play Again, and confirmed Reset Scores. M5 adds Easy Computer mode: human X always starts, and computer O randomly selects an empty cell after 400 ms. Practice remains a non-playable preview; Undo is not implemented. M1–M4 are deployed to Vercel; M5 is being reviewed on its feature branch.
 
 ## Local development
 
@@ -65,7 +65,7 @@ The planning documents retain their original planning-stage status. M1, M2, and 
 1. Run `npm run dev` and open the local URL.
 2. Select **Start Playing**, then try each of the three modes.
 3. In setup, select each of the four presets and check the preview.
-4. Select **Start Game**. Confirm the mode and symbol pair match your choices. Computer and Practice remain inactive; Friend is now playable in M3.
+4. Select **Start Game**. Confirm the mode and symbol pair match your choices. Friend and Computer are playable; Practice remains a preview.
 5. Use **Back to Setup**, **Back to Modes**, and **Back to Home**, then move forward again. Your selected mode and preset should be preserved.
 6. From the Game screen, use **Change Mode** and choose another mode. The previously selected preset should remain selected.
 7. Confirm navigation keeps the URL at `/`. Refresh returns to Home and resets selections to Computer and Classic; nothing is saved between page loads.
@@ -101,7 +101,7 @@ Select **Play vs Friend**, choose a preset, and select **Start Game**. Player 1 
 
 Between sequences, use **New Round/Play Again** or **Back to Setup → Start Game**. Leaving the Game screen discards the round; mode and preset selections remain.
 
-During play, try selecting an occupied cell: it must not replace its symbol or advance the turn. After a result, all cells must be disabled. Use Tab to navigate available cells and Enter or Space to place a symbol. Repeat with another preset, then verify Computer and Practice are still previews and Back/Change Mode still work.
+During play, try selecting an occupied cell: it must not replace its symbol or advance the turn. After a result, all cells must be disabled. Use Tab to navigate available cells and Enter or Space to place a symbol. Repeat with another preset, then verify Practice remains a preview and Back/Change Mode still work.
 
 ### M3 implementation concepts
 
@@ -126,6 +126,22 @@ Reducer tests exercise state transitions directly; hook mounting and component i
 
 Scores live in the game reducer, separately from the active round. A valid move that ends a round credits its result once. Rendering never updates scores. Reset Scores clears only the active mode and invalidates the round's credit while retaining its board. New Round/Play Again clears the board, starts X, and keeps the selected mode, preset, and scores. Navigation preserves scores; refreshing the page clears them.
 
-Manual checks: win a Friend round and verify one point; choose Play Again and verify it remains. Try Cancel and Escape in Reset Scores, then confirm a reset. The completed board should remain locked with zero scores. Switch to Computer or Practice and back; Friend scores should survive and the other boards should remain placeholders. Refresh to verify all scores reset.
+Manual checks: win a Friend round and verify one point; choose Play Again and verify it remains. Try Cancel and Escape in Reset Scores, then confirm a reset. The completed board should remain locked with zero scores. Switch to Computer or Practice and back; Friend scores should survive. Practice remains a placeholder. Refresh to verify all scores reset.
 
 Validation: 68 automated tests passed, plus lint, type-check, and production build. Browser checks passed for X/O wins and draws, accumulated scores, New Round, Play Again, Cancel/Escape/confirm, keyboard focus wrapping/restoration, active/completed-round resets, mode isolation, refresh, and a 320 px dialog layout. No browser console errors or warnings were captured. Screen-reader speech was not manually tested. No new dependencies were added.
+
+## M5: Easy Computer mode
+
+`lib/computerAI.ts` lists the empty cells and uses `Math.floor(random() * emptyCells.length)` to choose an index. Every empty cell has the same chance; the computer does not look ahead or choose strategically. Completed boards return no move.
+
+`useTicTacToe` schedules the computer in a React effect, outside the pure reducer. Cleanup cancels the 400 ms timer on round changes or unmount. A computer action carries its round ID and board snapshot; the reducer rejects stale or duplicate responses, wrong turns, occupied cells, and completed rounds. The shared M4 scoring logic still credits each result once. Human X starts every round.
+
+Manual checks after `npm run dev`:
+
+1. Choose Computer, pick a preset, and start. Expect **Your Turn** and an empty board.
+2. Place X. During **Computer is thinking...**, all cells must be disabled. One O appears after about 400 ms, then input returns.
+3. Quickly choose **New Round** or **Change Mode** during the delay. The replacement board must stay empty until you play.
+4. Finish rounds. Check **You Win!**, **Computer Wins!**, or **It's a Draw!**, winning highlights, disabled cells, and one score update.
+5. Check Play Again retains scores, Reset Scores requires confirmation, and Friend scores remain separate. Practice must stay disabled.
+
+Validation: automated tests cover random selection intervals, terminal boards, human-first turns, duplicate/stale actions, timer cleanup (including Strict Mode's setup/cleanup sequence), restarts, navigation, reset during thinking, and computer-mode scoring. Browser checks covered human/computer turns, input lock, restart/mode-change cancellation, three scored human wins, Play Again, reset cancel/confirm, Shapes symbols, Friend regression, mode score isolation, Practice preview, navigation back to Home, and mobile layout at 375 px. No browser console errors or warnings were captured. Computer wins and draws are covered by automated tests; screen-reader speech was not manually tested. No dependencies were added.

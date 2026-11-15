@@ -90,6 +90,7 @@ describe("session scores", () => {
 
   it.each<GameMode>(["computer", "friend", "practice"])("resets only active %s scores", (mode) => {
     const state = start({
+      roundId: 0,
       round: null,
       scores: {
         computer: { X: 2, O: 1, draws: 3 },
