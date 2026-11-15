@@ -98,7 +98,7 @@ describe("Friend round transitions", () => {
 });
 
 describe("round navigation boundaries", () => {
-  it.each<GameMode>(["computer", "practice"])("keeps %s non-playable", (mode) => {
+  it.each<GameMode>(["practice"])("keeps %s non-playable", (mode) => {
     const state = startRound(mode);
     expect(gameReducer(state, { type: "move", index: 0, player: "X" })).toBe(state);
   });

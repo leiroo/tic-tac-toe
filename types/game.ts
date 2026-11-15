@@ -37,6 +37,7 @@ export type RoundState = {
 export type ScoreKey = Player | "draws";
 export type ModeScores = Record<ScoreKey, number>;
 export type GameState = {
+  roundId: number;
   round: RoundState | null;
   scores: Record<GameMode, ModeScores>;
 };

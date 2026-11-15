@@ -18,21 +18,21 @@ type GameScreenProps = {
 };
 
 export default function GameScreen({ modeName, preset, round, result, scores, onNewRound, onResetScores, onMove, onBack, onChangeMode }: GameScreenProps) {
-  const isPlayable = round.mode === "friend";
+  const isPlayable = round.mode !== "practice";
 
   return (
     <section aria-labelledby="game-title">
       <button type="button" onClick={onBack} className="button-back">← Back to Setup</button>
       <p className="eyebrow mt-8">03 / Your board</p>
       <h1 id="game-title" tabIndex={-1} className="screen-title">{modeName}</h1>
-      <GameStatus isPlayable={isPlayable} turn={round.turn} result={result} preset={preset} />
+      <GameStatus mode={round.mode} turn={round.turn} result={result} preset={preset} />
 
       <div className="mt-8 grid items-start gap-8 md:grid-cols-[1fr_300px] md:gap-12">
         <GameBoard
           board={round.board}
           preset={preset}
           winningCells={result.winningCells}
-          disabled={!isPlayable || result.winner !== null || result.isDraw}
+          disabled={!isPlayable || (round.mode === "computer" && round.turn === "O") || result.winner !== null || result.isDraw}
           onMove={onMove}
         />
         <aside aria-label="Game setup summary" className="rounded-2xl border border-muted/20 bg-surface p-6">

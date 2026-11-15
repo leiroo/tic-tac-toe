@@ -1,16 +1,19 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
+import { chooseComputerMove } from "@/lib/computerAI";
 import { analyzeBoard, createEmptyBoard, isValidMove } from "@/lib/gameLogic";
 import type { Board, GameMode, GameState, Player, RoundState, SymbolPresetId } from "@/types/game";
 
 export type GameAction =
   | { type: "start"; mode: GameMode; presetId: SymbolPresetId }
   | { type: "move"; index: number; player: Player }
+  | { type: "computerMove"; index: number; roundId: number; board: Board }
   | { type: "leave" }
   | { type: "newRound" }
   | { type: "resetScores" };
 
 export function createInitialGameState(): GameState {
   return {
+    roundId: 0,
     round: null,
     scores: {
       computer: { X: 0, O: 0, draws: 0 },
@@ -29,11 +32,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const round = state.round;
   switch (action.type) {
     case "start":
-      return { ...state, round: createRound(action.mode, action.presetId) };
+      return { ...state, roundId: state.roundId + 1, round: createRound(action.mode, action.presetId) };
     case "leave":
       return { ...state, round: null };
     case "newRound":
-      return round ? { ...state, round: createRound(round.mode, round.presetId) } : state;
+      return round ? { ...state, roundId: state.roundId + 1, round: createRound(round.mode, round.presetId) } : state;
     case "resetScores":
       if (!round) return state;
       return {
@@ -42,11 +45,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         // The board stays completed; its cleared credit cannot be counted again.
         round: { ...round, scoreCredit: null },
       };
-    case "move": {
+    case "move":
+    case "computerMove": {
       if (
-        !round || round.mode !== "friend" || action.player !== round.turn ||
+        !round || round.mode === "practice" ||
         !isValidMove(round.board, action.index)
       ) return state;
+
+      if (action.type === "computerMove") {
+        if (round.mode !== "computer" || round.turn !== "O" ||
+          action.roundId !== state.roundId || action.board !== round.board) return state;
+      } else if (action.player !== round.turn ||
+        (round.mode === "computer" && action.player !== "X")) return state;
 
       // Copy first: reducers must never modify a previous state object.
       const board: [...Board] = [...round.board];
@@ -78,18 +88,39 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   }
 }
 
+// The effect owns the timer; the reducer only validates and applies its action.
+export function scheduleComputerTurn(
+  round: RoundState | null,
+  roundId: number,
+  dispatch: (action: GameAction) => void,
+  random: () => number = Math.random,
+): () => void {
+  if (!round || round.mode !== "computer" || round.turn !== "O") return () => {};
+  const result = analyzeBoard(round.board);
+  if (result.winner || result.isDraw) return () => {};
+
+  const timer = setTimeout(() => {
+    const index = chooseComputerMove(round.board, random);
+    if (index !== null) dispatch({ type: "computerMove", index, roundId, board: round.board });
+  }, 400);
+  // React calls this before replacing the effect and when the hook unmounts.
+  return () => clearTimeout(timer);
+}
+
 export default function useTicTacToe() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialGameState);
   const { round, scores } = state;
   // Results come from the board; storing them separately could let them drift.
   const result = round ? analyzeBoard(round.board) : null;
 
+  useEffect(() => scheduleComputerTurn(round, state.roundId, dispatch), [round, state.roundId]);
+
   function startGame(mode: GameMode, presetId: SymbolPresetId) {
     dispatch({ type: "start", mode, presetId });
   }
 
   function playMove(index: number) {
-    if (round) dispatch({ type: "move", index, player: round.turn });
+    if (round) dispatch({ type: "move", index, player: round.mode === "computer" ? "X" : round.turn });
   }
 
   function leaveGame() {
