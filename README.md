@@ -8,7 +8,7 @@ M1 provides project configuration. M2 adds Home → Mode Selection → Game Setu
 
 M3 makes **Play vs Friend** playable: X starts, turns alternate, all eight winning patterns and draws are detected, winning cells are highlighted, and completed rounds reject moves. Presets change the displayed symbols only.
 
-Computer and Practice remain non-playable previews. Scoring, New Round/Play Again controls, AI, and Undo are not implemented yet. The project is not deployed.
+M4 adds independent session scores for all three modes, New Round/Play Again, and confirmed Reset Scores. Computer and Practice remain non-playable previews; AI and Undo are not implemented. The project is not deployed.
 
 ## Local development
 
@@ -99,7 +99,7 @@ Select **Play vs Friend**, choose a preset, and select **Start Game**. Player 1 
 - Ninth-move win: **1, 2, 3, 4, 5, 6, 8, 7, 9**. Expect a Player 1 diagonal win, not a draw.
 - Two winning lines: **1, 2, 3, 4, 7, 6, 9, 8, 5**. Expect both diagonals highlighted, with the center marked once.
 
-Between sequences, use **Back to Setup → Start Game**. Leaving the Game screen discards the round; mode and preset selections remain. New Round/Play Again controls arrive in M4.
+Between sequences, use **New Round/Play Again** or **Back to Setup → Start Game**. Leaving the Game screen discards the round; mode and preset selections remain.
 
 During play, try selecting an occupied cell: it must not replace its symbol or advance the turn. After a result, all cells must be disabled. Use Tab to navigate available cells and Enter or Space to place a symbol. Repeat with another preset, then verify Computer and Practice are still previews and Back/Change Mode still work.
 
@@ -121,3 +121,11 @@ During play, try selecting an occupied cell: it must not replace its symbol or a
 - Winning board checked at 320/375/768/1280 CSS px: no horizontal overflow and cells exceeded 44×44 px.
 
 Reducer tests exercise state transitions directly; hook mounting and component interactions are covered by direct browser checks rather than a React Testing Library suite. Screen-reader speech and OS reduced-motion behavior were not manually tested. The existing seven moderate development-tooling audit findings remain.
+
+## M4: Scoreboard and round controls
+
+Scores live in the game reducer, separately from the active round. A valid move that ends a round credits its result once. Rendering never updates scores. Reset Scores clears only the active mode and invalidates the round's credit while retaining its board. New Round/Play Again clears the board, starts X, and keeps the selected mode, preset, and scores. Navigation preserves scores; refreshing the page clears them.
+
+Manual checks: win a Friend round and verify one point; choose Play Again and verify it remains. Try Cancel and Escape in Reset Scores, then confirm a reset. The completed board should remain locked with zero scores. Switch to Computer or Practice and back; Friend scores should survive and the other boards should remain placeholders. Refresh to verify all scores reset.
+
+Validation: 68 automated tests passed, plus lint, type-check, and production build. Browser checks passed for X/O wins and draws, accumulated scores, New Round, Play Again, Cancel/Escape/confirm, keyboard focus wrapping/restoration, active/completed-round resets, mode isolation, refresh, and a 320 px dialog layout. No browser console errors or warnings were captured. Screen-reader speech was not manually tested. No new dependencies were added.

@@ -31,4 +31,12 @@ export type RoundState = {
   turn: Player;
   mode: GameMode;
   presetId: SymbolPresetId;
+  scoreCredit: ScoreKey | null;
+};
+
+export type ScoreKey = Player | "draws";
+export type ModeScores = Record<ScoreKey, number>;
+export type GameState = {
+  round: RoundState | null;
+  scores: Record<GameMode, ModeScores>;
 };
