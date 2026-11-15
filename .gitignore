@@ -1,0 +1,30 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+build/
+coverage/
+
+# Local configuration and secrets
+.env*
+*.pem
+.vercel/
+.npmrc
+.netrc
+.git-credentials
+.aws/
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials*.json
+service-account*.json
+
+# Generated TypeScript files and logs
+next-env.d.ts
+*.tsbuildinfo
+*.log
+
+# Operating system metadata
+.DS_Store
