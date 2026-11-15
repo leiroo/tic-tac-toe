@@ -42,6 +42,12 @@ export default function GameScreen({ modeName, preset, round, result, scores, on
               <dt className="text-xs uppercase tracking-widest text-muted">Mode</dt>
               <dd className="mt-2 text-sm">{modeName}</dd>
             </div>
+            {round.mode === "computer" && (
+              <div>
+                <dt className="text-xs uppercase tracking-widest text-muted">Difficulty</dt>
+                <dd className="mt-2 text-sm capitalize">{round.difficulty}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-xs uppercase tracking-widest text-muted">Symbols</dt>
               <dd className="mt-2">

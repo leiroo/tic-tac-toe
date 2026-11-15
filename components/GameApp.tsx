@@ -70,6 +70,9 @@ export default function GameApp() {
         {currentScreen === "setup" && (
           <GameSetupScreen
             modeName={mode.name}
+            mode={selectedMode}
+            difficulty={game.difficulty}
+            onDifficultyChange={game.setDifficulty}
             preset={preset}
             onPresetChange={setSelectedPresetId}
             onBack={() => setCurrentScreen("modes")}

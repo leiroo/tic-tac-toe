@@ -8,7 +8,7 @@ M1 provides project configuration. M2 adds Home → Mode Selection → Game Setu
 
 M3 makes **Play vs Friend** playable: X starts, turns alternate, all eight winning patterns and draws are detected, winning cells are highlighted, and completed rounds reject moves. Presets change the displayed symbols only.
 
-M4 adds independent session scores for all three modes, New Round/Play Again, and confirmed Reset Scores. M5 adds Easy Computer mode: human X always starts, and computer O randomly selects an empty cell after 400 ms. Practice remains a non-playable preview; Undo is not implemented. M1–M4 are deployed to Vercel; M5 is being reviewed on its feature branch.
+M4 adds independent session scores, New Round/Play Again, and confirmed Reset Scores. M5 adds Computer mode with a 400 ms response delay. M5.5 adds alternating starters for Computer/Friend and Easy, Medium, and Hard computer difficulty. Practice remains a non-playable preview; Undo is not implemented. M1–M5 are merged into main; M5.5 is being reviewed on its feature branch.
 
 ## Local development
 
@@ -85,7 +85,7 @@ These were direct browser checks, not a committed automated test suite. Reduced-
 
 ## Manually check M3
 
-Select **Play vs Friend**, choose a preset, and select **Start Game**. Player 1 starts every fresh round. For the sequences below, number the cells from left to right:
+Select **Play vs Friend**, choose a preset, and select **Start Game**. Player 1 starts the first round; M5.5 alternates starters on each fresh board. Use an X-start round for the sequences below, number the cells from left to right:
 
 ```text
 1 2 3
@@ -124,7 +124,7 @@ Reducer tests exercise state transitions directly; hook mounting and component i
 
 ## M4: Scoreboard and round controls
 
-Scores live in the game reducer, separately from the active round. A valid move that ends a round credits its result once. Rendering never updates scores. Reset Scores clears only the active mode and invalidates the round's credit while retaining its board. New Round/Play Again clears the board, starts X, and keeps the selected mode, preset, and scores. Navigation preserves scores; refreshing the page clears them.
+Scores live in the game reducer, separately from the active round. A valid move that ends a round credits its result once. Rendering never updates scores. Reset Scores clears only the active mode and invalidates the round's credit while retaining its board. New Round/Play Again clears the board and keeps the selected mode, preset, and scores. Since M5.5, Computer/Friend alternate starters. Navigation preserves scores; refreshing the page clears them.
 
 Manual checks: win a Friend round and verify one point; choose Play Again and verify it remains. Try Cancel and Escape in Reset Scores, then confirm a reset. The completed board should remain locked with zero scores. Switch to Computer or Practice and back; Friend scores should survive. Practice remains a placeholder. Refresh to verify all scores reset.
 
@@ -134,14 +134,33 @@ Validation: 68 automated tests passed, plus lint, type-check, and production bui
 
 `lib/computerAI.ts` lists the empty cells and uses `Math.floor(random() * emptyCells.length)` to choose an index. Every empty cell has the same chance; the computer does not look ahead or choose strategically. Completed boards return no move.
 
-`useTicTacToe` schedules the computer in a React effect, outside the pure reducer. Cleanup cancels the 400 ms timer on round changes or unmount. A computer action carries its round ID and board snapshot; the reducer rejects stale or duplicate responses, wrong turns, occupied cells, and completed rounds. The shared M4 scoring logic still credits each result once. Human X starts every round.
+`useTicTacToe` schedules the computer in a React effect, outside the pure reducer. Cleanup cancels the 400 ms timer on round changes or unmount. A computer action carries its round ID and board snapshot; the reducer rejects stale or duplicate responses, wrong turns, occupied cells, and completed rounds. The shared M4 scoring logic still credits each result once. M5 originally started every round with human X; M5.5 now alternates starters.
 
 Manual checks after `npm run dev`:
 
 1. Choose Computer, pick a preset, and start. Expect **Your Turn** and an empty board.
 2. Place X. During **Computer is thinking...**, all cells must be disabled. One O appears after about 400 ms, then input returns.
-3. Quickly choose **New Round** or **Change Mode** during the delay. The replacement board must stay empty until you play.
+3. Quickly choose **New Round** or **Change Mode** during the delay. The old response must not affect the replacement round. Since M5.5, an O-start round receives its own single opening move.
 4. Finish rounds. Check **You Win!**, **Computer Wins!**, or **It's a Draw!**, winning highlights, disabled cells, and one score update.
 5. Check Play Again retains scores, Reset Scores requires confirmation, and Friend scores remain separate. Practice must stay disabled.
 
 Validation: automated tests cover random selection intervals, terminal boards, human-first turns, duplicate/stale actions, timer cleanup (including Strict Mode's setup/cleanup sequence), restarts, navigation, reset during thinking, and computer-mode scoring. Browser checks covered human/computer turns, input lock, restart/mode-change cancellation, three scored human wins, Play Again, reset cancel/confirm, Shapes symbols, Friend regression, mode score isolation, Practice preview, navigation back to Home, and mobile layout at 375 px. No browser console errors or warnings were captured. Computer wins and draws are covered by automated tests; screen-reader speech was not manually tested. No dependencies were added.
+
+
+## M5.5: Alternating starters and difficulty
+
+Computer and Friend each remember their next starter, initially X. Creating a board with Start Game or New Round/Play Again consumes that starter and flips it for that mode. This includes unfinished rounds and returning from setup or another mode. Players keep their X/O assignments. Navigation alone and Reset Scores do not change the sequence; refresh resets it. Practice is unchanged.
+
+The Computer-only setup selector defaults to Easy and persists for the page session. Each started round captures its difficulty; mid-round difficulty changes are rejected. Easy remains uniformly random. Medium checks for an O win, then blocks an X win, then chooses randomly. Hard uses Minimax to explore possible continuations, assuming both players choose their best outcome; repeated positions are cached within each search. It prefers faster wins and supports both starting orders. All levels share the existing win/draw rules, 400 ms timer, and stale-action guards.
+
+Manual checks:
+
+1. Start Computer: X starts. New Round: O opens automatically. New Round again: X starts. Rapidly restart during the opening delay and confirm no stale O appears in the X-start round.
+2. Switch to Friend: its first round starts X, its second starts O. Return to Computer with Start Game: its next starter is preserved independently.
+3. Reset Scores and confirm the current turn and next starter stay unchanged. Check O-start wins credit Player 2/Computer once.
+4. In Computer setup, choose Easy, Medium, or Hard using mouse or arrow keys. The selection should persist through rounds and returning to setup. The selector must be absent in Friend and Practice.
+5. Try to beat Hard with either starting order. Check different symbol presets, score preservation, resets, and navigation. Refresh: Easy, X-first sequences, and zero scores return.
+
+Validation: Part A passed 94 tests, lint, and TypeScript before Part B began. Final validation passed 108 tests, lint, TypeScript, and production build. Tests exhaustively explore every legal human continuation against Hard from both starting orders and find no human wins. Tests also cover Medium priorities, Easy probability intervals, O openings in every difficulty, sequences, difficulty persistence, scores, and stale timers.
+
+Browser checks used the local production build: Computer X/O/X starts, all three difficulty openings, two Hard computer wins, Friend O-start win, independent sequences/scores, reset confirmation, restart and mode-change cancellation, keyboard difficulty selection, Love & Stars display, hidden selectors in Friend/Practice, refresh defaults, and 375 px mobile layout passed. No console errors or warnings were captured. Screen-reader speech was not manually tested. No dependencies were added; M6/M7 were not started.

@@ -1,6 +1,7 @@
 export type Screen = "home" | "modes" | "setup" | "game";
 
 export type GameMode = "computer" | "friend" | "practice";
+export type Difficulty = "easy" | "medium" | "hard";
 
 export type SymbolPresetId = "classic" | "love-stars" | "sun-moon" | "shapes";
 
@@ -31,6 +32,7 @@ export type RoundState = {
   turn: Player;
   mode: GameMode;
   presetId: SymbolPresetId;
+  difficulty: Difficulty;
   scoreCredit: ScoreKey | null;
 };
 
@@ -38,6 +40,8 @@ export type ScoreKey = Player | "draws";
 export type ModeScores = Record<ScoreKey, number>;
 export type GameState = {
   roundId: number;
+  nextStarter: Record<"computer" | "friend", Player>;
+  difficulty: Difficulty;
   round: RoundState | null;
   scores: Record<GameMode, ModeScores>;
 };

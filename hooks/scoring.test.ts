@@ -58,14 +58,14 @@ describe("session scores", () => {
     expect(gameReducer(before, action).scores.friend.X).toBe(1);
   });
 
-  it("New Round clears board and result, starts X, and preserves config and scores", () => {
+  it("New Round clears board and result, alternates starter, and preserves config and scores", () => {
     const won = play(xWin);
     const next = gameReducer(won, { type: "newRound" });
     expect(next.scores).toBe(won.scores);
-    expect(next.round).toMatchObject({ mode: "friend", presetId: "love-stars", turn: "X", scoreCredit: null });
+    expect(next.round).toMatchObject({ mode: "friend", presetId: "love-stars", turn: "O", scoreCredit: null });
     expect(next.round!.board.every((cell) => cell === null)).toBe(true);
     expect(analyzeBoard(next.round!.board)).toEqual({ winner: null, winningCells: [], isDraw: false });
-    const second = play(oWin, next);
+    const second = play(xWin, next); // The first mover is now O.
     const third = play(draw, gameReducer(second, { type: "newRound" }));
     expect(third.scores.friend).toEqual({ X: 1, O: 1, draws: 1 });
   });
@@ -90,6 +90,7 @@ describe("session scores", () => {
 
   it.each<GameMode>(["computer", "friend", "practice"])("resets only active %s scores", (mode) => {
     const state = start({
+      ...createInitialGameState(),
       roundId: 0,
       round: null,
       scores: {
@@ -114,7 +115,7 @@ describe("session scores", () => {
     expect(analyzeBoard(reset.round!.board).winner).toBe("X");
     expect(gameReducer(reset, { type: "move", index: 5, player: "X" })).toBe(reset);
     expect(reset.scores.friend).toEqual({ X: 0, O: 0, draws: 0 });
-    expect(play(xWin, gameReducer(reset, { type: "newRound" })).scores.friend.X).toBe(1);
+    expect(play(xWin, gameReducer(reset, { type: "newRound" })).scores.friend.O).toBe(1);
   });
 
   it("keeps an active board and turn during reset and credits its later result", () => {
@@ -122,7 +123,7 @@ describe("session scores", () => {
     const reset = gameReducer(partial, { type: "resetScores" });
     expect(reset.round!.board).toBe(partial.round!.board);
     expect(reset.round!.turn).toBe(partial.round!.turn);
-    expect(play([2], reset).scores.friend.X).toBe(1);
+    expect(play([2], reset).scores.friend.O).toBe(1);
   });
 
   it("initializes fresh independent zero scores for a new page session", () => {

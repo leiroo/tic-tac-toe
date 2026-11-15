@@ -1,10 +1,11 @@
 import { useEffect, useReducer } from "react";
 import { chooseComputerMove } from "@/lib/computerAI";
 import { analyzeBoard, createEmptyBoard, isValidMove } from "@/lib/gameLogic";
-import type { Board, GameMode, GameState, Player, RoundState, SymbolPresetId } from "@/types/game";
+import type { Board, Difficulty, GameMode, GameState, Player, RoundState, SymbolPresetId } from "@/types/game";
 
 export type GameAction =
   | { type: "start"; mode: GameMode; presetId: SymbolPresetId }
+  | { type: "setDifficulty"; difficulty: Difficulty }
   | { type: "move"; index: number; player: Player }
   | { type: "computerMove"; index: number; roundId: number; board: Board }
   | { type: "leave" }
@@ -14,6 +15,8 @@ export type GameAction =
 export function createInitialGameState(): GameState {
   return {
     roundId: 0,
+    nextStarter: { computer: "X", friend: "X" },
+    difficulty: "easy",
     round: null,
     scores: {
       computer: { X: 0, O: 0, draws: 0 },
@@ -23,20 +26,33 @@ export function createInitialGameState(): GameState {
   };
 }
 
-function createRound(mode: GameMode, presetId: SymbolPresetId): RoundState {
-  return { board: createEmptyBoard(), turn: "X", mode, presetId, scoreCredit: null };
+function startRound(state: GameState, mode: GameMode, presetId: SymbolPresetId, difficulty = state.difficulty): GameState {
+  const starter = mode === "practice" ? "X" : state.nextStarter[mode];
+  return {
+    ...state,
+    roundId: state.roundId + 1,
+    // Consume the starter only when a fresh board is actually created.
+    nextStarter: mode === "practice" ? state.nextStarter : {
+      ...state.nextStarter,
+      [mode]: starter === "X" ? "O" : "X",
+    },
+    round: { board: createEmptyBoard(), turn: starter, mode, presetId, difficulty, scoreCredit: null },
+  };
 }
 
 // Export the pure reducer so transitions can be tested without a browser.
 export function gameReducer(state: GameState, action: GameAction): GameState {
   const round = state.round;
   switch (action.type) {
+    case "setDifficulty":
+      // Setup changes apply to the next round, never to a running game or timer.
+      return round ? state : { ...state, difficulty: action.difficulty };
     case "start":
-      return { ...state, roundId: state.roundId + 1, round: createRound(action.mode, action.presetId) };
+      return startRound(state, action.mode, action.presetId);
     case "leave":
       return { ...state, round: null };
     case "newRound":
-      return round ? { ...state, roundId: state.roundId + 1, round: createRound(round.mode, round.presetId) } : state;
+      return round ? startRound(state, round.mode, round.presetId, round.difficulty) : state;
     case "resetScores":
       if (!round) return state;
       return {
@@ -100,7 +116,7 @@ export function scheduleComputerTurn(
   if (result.winner || result.isDraw) return () => {};
 
   const timer = setTimeout(() => {
-    const index = chooseComputerMove(round.board, random);
+    const index = chooseComputerMove(round.board, round.difficulty, random);
     if (index !== null) dispatch({ type: "computerMove", index, roundId, board: round.board });
   }, 400);
   // React calls this before replacing the effect and when the hook unmounts.
@@ -119,6 +135,10 @@ export default function useTicTacToe() {
     dispatch({ type: "start", mode, presetId });
   }
 
+  function setDifficulty(difficulty: Difficulty) {
+    dispatch({ type: "setDifficulty", difficulty });
+  }
+
   function playMove(index: number) {
     if (round) dispatch({ type: "move", index, player: round.mode === "computer" ? "X" : round.turn });
   }
@@ -135,5 +155,5 @@ export default function useTicTacToe() {
     dispatch({ type: "resetScores" });
   }
 
-  return { round, scores, result, startGame, playMove, leaveGame, newRound, resetScores };
+  return { round, scores, result, difficulty: state.difficulty, setDifficulty, startGame, playMove, leaveGame, newRound, resetScores };
 }

@@ -21,15 +21,16 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 ## 2. Version 1 features
 
 ### Mode A: Play vs Computer
-- Human is internal `X`; computer is internal `O`. Human starts every round.
-- Difficulty is **Easy only**: computer chooses uniformly from currently empty cells; there is no look-ahead strategy.
+- Human is internal `X`; computer is internal `O`. Starting player alternates each fresh round, beginning with X (approved M5.5 extension).
+- Difficulty defaults to **Easy** (uniformly random empty cell). **Medium** wins immediately if possible, otherwise blocks an immediate human win, otherwise chooses randomly. **Hard** uses optimal Minimax and supports either starting player.
+- Computer-only setup difficulty persists during the page session and is captured for each round; it cannot change mid-round.
 - Human input is disabled during the computer's turn.
 - A short 300–500 ms status delay is permitted; cancel/ignore pending computer actions after restart, mode change, or unmount.
 - If human move ends game, do not schedule a computer move.
 
 ### Mode B: Play vs Friend
 - Two humans play on the **same device**, not online.
-- Player 1 is internal X and starts; Player 2 is O. Alternate after each valid nonterminal move.
+- Player 1 is internal X; Player 2 is O. Starting player alternates each fresh round, beginning with X. Alternate turns after each valid nonterminal move.
 
 ### Mode C: Play With Yourself / Practice
 - One person can manually choose X or O before each move; repeated same-symbol placement is permitted.
@@ -43,6 +44,7 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 - Detect all 8 standard rows, columns, and diagonals; winner has priority over full-board draw. Multiple winning lines still score once.
 - Show turn or status message; announce winning player or draw and highlight winning cells.
 - New Round/Play Again clears board and preserves current mode's scores.
+- Computer and Friend maintain independent next-starter sequences. New Round/Play Again and Start Game consume that mode's next starter, even after unfinished rounds. Navigation alone and Reset Scores do not advance it; refresh resets both sequences to X. Practice is unchanged.
 - Change Mode returns to mode selection, discards unfinished round, preserves mode scores for this page session.
 - Reset Scores asks confirmation, resets **only the active mode**, and must avoid double-counting a completed round.
 - Four paired symbol presets: Classic (X/O), Love & Stars (♥/★), Sun & Moon (☀/☾), Shapes (◆/●).
@@ -103,7 +105,7 @@ Home → Mode Selection → Game Setup → Game ↔ (New Round / inline Result);
 
 ### Game logic module responsibilities
 - `lib/gameLogic.ts`: pure move checks, winner/draw analysis.
-- `lib/computerAI.ts`: random choice among legal empty cells.
+- `lib/computerAI.ts`: Easy random choice, Medium win/block/random, and Hard Minimax using the shared game rules.
 - `hooks/useTicTacToe.ts`: game reducer and actions/score semantics.
 - `data/symbolPresets.ts`: display mapping for X and O.
 - `types/game.ts`: documented game/domain types.
@@ -158,7 +160,7 @@ All three modes work, all planned game controls and preset options work, no crit
 
 ## 8. Out of scope
 
-Online rooms or invites, authentication, persistence across refreshes, database, leaderboards, multiplayer networking, advanced/minimax AI, custom asset uploads, monetization.
+Online rooms or invites, authentication, persistence across refreshes, database, leaderboards, multiplayer networking, external AI services, custom asset uploads, monetization. Local Medium/Hard AI and alternating starters were approved as the M5.5 scope extension.
 
 ## 9. Planning and approval
 
