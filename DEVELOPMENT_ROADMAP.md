@@ -57,10 +57,14 @@ For each milestone: (1) read its scope, (2) ask Codex to inspect and propose min
 **Boundary:** No Practice implementation, external AI services, or later milestones. This milestone supersedes M5's Easy-only/human-first boundary for subsequent work.
 
 ### Milestone M6 — Practice mode, manual symbol control and Undo
-**Depends on:** M3 and M4; can be implemented separately from M5.  
-**Tasks:** Manual X/O selector, nonalternating placement, board-history Undo, terminal-result Undo, score-credit reversal and score-reset guard.  
-**Acceptance:** X/X or O/O consecutive moves accepted; Undo restores most recent board and does not change selected symbol; Undo available after completed round; completed-score credit reversed once; Undo after Reset Scores never subtracts a cleared credit; no negative scores; New Round clears history and restores X selection.  
-**Verify:** Tests for repeated symbols, empty history, multi-step Undo, win/draw Undo, score reset + Undo; manual walkthrough.  
+**Depends on:** M3 and M4; can be implemented separately from M5.
+
+**Tasks:** Manual X/O selector, nonalternating placement, board-history Undo, terminal-result Undo, score-credit reversal and score-reset guard.
+
+**Acceptance:** X/X or O/O consecutive moves accepted; Undo restores most recent board and does not change selected symbol; Undo available after completed round; completed-score credit reversed once; Reset Match clears board/history/scores and selects X; Undo afterward never subtracts a cleared credit; no negative scores; New Round clears history and restores X selection.
+
+**Verify:** Tests for repeated symbols, empty history, multi-step Undo, win/draw Undo, score reset + Undo; manual walkthrough.
+
 **Boundary:** No redo or save/load.
 
 ### Milestone M7 — Symbol presets and Dark Arcade responsive polish

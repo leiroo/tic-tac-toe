@@ -8,9 +8,12 @@ type GameStatusProps = {
 };
 
 export default function GameStatus({ mode, turn, result, preset }: GameStatusProps) {
-  let message = "Board preview. Gameplay is coming soon.";
+  let message: string;
 
-  if (mode !== "practice") {
+  if (mode === "practice") {
+    message = result.winner ? `${result.winner} Wins!`
+      : result.isDraw ? "It's a Draw!" : `Place ${turn} (${preset.symbols[turn]})`;
+  } else {
     if (result.winner) {
       message = mode === "computer"
         ? result.winner === "X" ? "You Win!" : "Computer Wins!"

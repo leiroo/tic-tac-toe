@@ -104,11 +104,9 @@ describe("session scores", () => {
     for (const other of ["computer", "friend", "practice"] as const) {
       if (other !== mode) expect(reset.scores[other]).toBe(state.scores[other]);
     }
-    if (mode === "practice") expect(reset.round!.board).toBe(state.round!.board);
-    else {
-      expect(reset.round!.board.every((cell) => cell === null)).toBe(true);
-      expect(reset.round!.turn).toBe("X");
-    }
+    expect(reset.round!.board.every((cell) => cell === null)).toBe(true);
+    expect(reset.round!.turn).toBe("X");
+    expect(reset.round!.history).toEqual([]);
   });
 
   it("replaces a completed round with an empty X-start round and zero scores", () => {

@@ -7,6 +7,8 @@ export type GameAction =
   | { type: "start"; mode: GameMode; presetId: SymbolPresetId }
   | { type: "enterMode"; mode: GameMode }
   | { type: "setDifficulty"; difficulty: Difficulty }
+  | { type: "selectSymbol"; player: Player }
+  | { type: "undo" }
   | { type: "move"; index: number; player: Player }
   | { type: "computerMove"; index: number; roundId: number; board: Board }
   | { type: "leave" }
@@ -37,7 +39,7 @@ function startRound(state: GameState, mode: GameMode, presetId: SymbolPresetId, 
       ...state.nextStarter,
       [mode]: starter === "X" ? "O" : "X",
     },
-    round: { board: createEmptyBoard(), turn: starter, mode, presetId, difficulty, scoreCredit: null },
+    round: { board: createEmptyBoard(), history: [], turn: starter, mode, presetId, difficulty, scoreCredit: null },
   };
 }
 
@@ -45,6 +47,32 @@ function startRound(state: GameState, mode: GameMode, presetId: SymbolPresetId, 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   const round = state.round;
   switch (action.type) {
+    case "selectSymbol": {
+      if (!round || round.mode !== "practice") return state;
+      const result = analyzeBoard(round.board);
+      if (result.winner || result.isDraw || round.turn === action.player) return state;
+      return { ...state, round: { ...round, turn: action.player } };
+    }
+    case "undo": {
+      if (!round || round.mode !== "practice" || round.history.length === 0) return state;
+      const credit = round.scoreCredit;
+      // Only the completed round owns a credit. Clearing it prevents double reversal.
+      const scores = credit === null ? state.scores : {
+        ...state.scores,
+        practice: { ...state.scores.practice, [credit]: Math.max(0, state.scores.practice[credit] - 1) },
+      };
+      return {
+        ...state,
+        scores,
+        round: {
+          ...round,
+          board: round.history[round.history.length - 1],
+          history: round.history.slice(0, -1),
+          scoreCredit: null,
+          // Keep the current placement symbol, rather than restoring an old turn.
+        },
+      };
+    }
     case "enterMode":
       return {
         ...state,
@@ -67,17 +95,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         scores: { ...state.scores, [round.mode]: { X: 0, O: 0, draws: 0 } },
       };
-      // Practice retains its existing score-only reset until its own milestone.
-      if (round.mode === "practice") return { ...cleared, round: { ...round, scoreCredit: null } };
       return startRound(
-        { ...cleared, nextStarter: { ...state.nextStarter, [round.mode]: "X" } },
+        { ...cleared, nextStarter: round.mode === "practice" ? state.nextStarter : { ...state.nextStarter, [round.mode]: "X" } },
         round.mode, round.presetId, round.difficulty,
       );
     }
     case "move":
     case "computerMove": {
       if (
-        !round || round.mode === "practice" ||
+        !round ||
         !isValidMove(round.board, action.index)
       ) return state;
 
@@ -109,8 +135,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         round: {
           ...round,
           board,
+          history: round.mode === "practice" ? [...round.history, round.board] : round.history,
           scoreCredit: credit,
-          turn: credit ? round.turn : round.turn === "X" ? "O" : "X",
+          turn: credit || round.mode === "practice" ? round.turn : round.turn === "X" ? "O" : "X",
         },
       };
     }
@@ -172,5 +199,13 @@ export default function useTicTacToe() {
     dispatch({ type: "resetMatch" });
   }
 
-  return { round, scores, result, difficulty: state.difficulty, setDifficulty, enterMode, startGame, playMove, leaveGame, newRound, resetMatch };
+  function selectSymbol(player: Player) {
+    dispatch({ type: "selectSymbol", player });
+  }
+
+  function undo() {
+    dispatch({ type: "undo" });
+  }
+
+  return { round, scores, result, difficulty: state.difficulty, setDifficulty, enterMode, startGame, playMove, leaveGame, newRound, resetMatch, selectSymbol, undo };
 }

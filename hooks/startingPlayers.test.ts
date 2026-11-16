@@ -95,14 +95,13 @@ describe("independent starting-player sequences", () => {
     expect(state.round!.board.every((cell) => cell === null)).toBe(true);
   });
 
-  it("leaves Practice unchanged and resets sequences in a fresh page session", () => {
+  it("Practice starts X without affecting competitive sequences, which reset in a fresh session", () => {
     let state = start(createInitialGameState(), "computer");
     const sequence = state.nextStarter;
     state = start(state, "practice");
     state = gameReducer(state, { type: "newRound" });
     expect(state.round!.turn).toBe("X");
     expect(state.nextStarter).toBe(sequence);
-    expect(gameReducer(state, { type: "move", index: 0, player: "X" })).toBe(state);
     expect(createInitialGameState().nextStarter).toEqual({ computer: "X", friend: "X" });
   });
 });
