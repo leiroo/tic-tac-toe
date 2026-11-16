@@ -22,7 +22,7 @@ describe("Friend round transitions", () => {
   it("starts with X, an empty board, and the chosen configuration", () => {
     const state = startRound("friend", "love-stars");
     expect(state).toEqual({
-      board: Array(9).fill(null), turn: "X", mode: "friend", presetId: "love-stars", difficulty: "easy", scoreCredit: null,
+      board: Array(9).fill(null), history: [], turn: "X", mode: "friend", presetId: "love-stars", difficulty: "easy", scoreCredit: null,
     });
   });
 
@@ -98,11 +98,6 @@ describe("Friend round transitions", () => {
 });
 
 describe("round navigation boundaries", () => {
-  it.each<GameMode>(["practice"])("keeps %s non-playable", (mode) => {
-    const state = startRound(mode);
-    expect(gameReducer(state, { type: "move", index: 0, player: "X" })).toBe(state);
-  });
-
   it("ignores moves before a round has started", () => {
     expect(gameReducer(null, { type: "move", index: 0, player: "X" })).toBeNull();
   });

@@ -90,6 +90,8 @@ export default function GameApp() {
             onNewRound={game.newRound}
             onResetMatch={() => setShowResetDialog(true)}
             onMove={game.playMove}
+            onSelectSymbol={game.selectSymbol}
+            onUndo={game.undo}
             onBack={() => leaveGame("setup")}
             onChangeMode={() => leaveGame("modes")}
           />

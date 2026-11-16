@@ -29,6 +29,7 @@ export type BoardResult = {
 
 export type RoundState = {
   board: Board;
+  history: readonly Board[];
   turn: Player;
   mode: GameMode;
   presetId: SymbolPresetId;

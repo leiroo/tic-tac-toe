@@ -44,9 +44,9 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 - Detect all 8 standard rows, columns, and diagonals; winner has priority over full-board draw. Multiple winning lines still score once.
 - Show turn or status message; announce winning player or draw and highlight winning cells.
 - New Round/Play Again clears board and preserves current mode's scores.
-- Entering Computer or Friend from Mode Selection resets that mode's next starter to X while preserving all scores. New Round/Play Again alternates starters even after unfinished rounds. Returning directly from Game to Setup and starting again consumes the next starter. Reset Match clears the active board/scores and restarts with X; refresh resets both sequences. Practice is unchanged.
+- Entering Computer or Friend from Mode Selection resets that mode's next starter to X while preserving all scores. New Round/Play Again alternates starters even after unfinished rounds. Returning directly from Game to Setup and starting again consumes the next starter. Reset Match clears the active board/scores and restarts with X; refresh resets both sequences. Practice always starts with X selected and never automatically alternates symbols.
 - Change Mode returns to mode selection, discards unfinished round, preserves mode scores for this page session.
-- Reset Match asks confirmation in Computer/Friend, cancels pending computer moves, clears the active board and mode scores, and starts X with O next. Difficulty, preset, and other modes' scores remain unchanged. Practice retains its score-only Reset Scores confirmation.
+- Reset Match asks confirmation in Computer/Friend, cancels pending computer moves, clears the active board and mode scores, and starts X with O next. Difficulty, preset, and other modes' scores remain unchanged. Practice also uses confirmed Reset Match: clear its board, move history, scores, and score credit, with X selected; other modes remain unchanged.
 - Four paired symbol presets: Classic (X/O), Love & Stars (♥/★), Sun & Moon (☀/☾), Shapes (◆/●).
 - Presets change **display only**. No icon characters are stored in board state. Selection is finalized at Game Setup for each started round; changing appearance mid-round is not required.
 - Maintain independent score counters per mode: first symbol wins, second symbol wins, draws. Labels vary by mode.
@@ -54,8 +54,8 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 ### Score semantics and tricky cases
 - A result is credited exactly once on the transition from active game to completed game, never simply on render.
 - A Practice Undo that reopens a completed round reverses its existing credited result exactly once.
-- In Practice, when Reset Scores occurs during a completed round, clear the current mode counters **and** invalidate the round's score credit; a later Undo must not subtract anything or produce negative values.
-- A completed round after Reset Scores must not be credited again by rerendering.
+- Practice Reset Match clears its history and score credit along with its board/scores. Undo is then unavailable and cannot subtract any cleared credit or produce negative values.
+- Completed results must never be credited again by rerendering. New Round discards history while keeping prior scores; Undo affects only the active round.
 - Refresh loses session game/scores; navigating between the app's own screens does not.
 
 ## 3. UX and screens

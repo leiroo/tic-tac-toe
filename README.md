@@ -8,7 +8,7 @@ M1 provides project configuration. M2 adds Home → Mode Selection → Game Setu
 
 M3 makes **Play vs Friend** playable: X starts, turns alternate, all eight winning patterns and draws are detected, winning cells are highlighted, and completed rounds reject moves. Presets change the displayed symbols only.
 
-M4 adds independent session scores, New Round/Play Again, and confirmed Reset Scores. M5 adds Computer mode with a 400 ms response delay. M5.5 adds alternating starters for Computer/Friend and Easy, Medium, and Hard computer difficulty. Practice remains a non-playable preview; Undo is not implemented. M1–M5 are merged into main; M5.5 is being reviewed on its feature branch.
+M4 adds independent session scores, New Round/Play Again, and confirmed Reset Scores. M5 adds Computer mode with a 400 ms response delay. M5.5 adds alternating starters for Computer/Friend and Easy, Medium, and Hard computer difficulty. M6 adds playable Practice with manual X/O selection and Undo, including reversal of a completed round’s score. Reset Match now clears the board/history and current mode scores in all modes. M1–M5.5 are merged into main; M6 is being reviewed on its feature branch.
 
 ## Local development
 
@@ -65,7 +65,7 @@ The planning documents retain their original planning-stage status. M1, M2, and 
 1. Run `npm run dev` and open the local URL.
 2. Select **Start Playing**, then try each of the three modes.
 3. In setup, select each of the four presets and check the preview.
-4. Select **Start Game**. Confirm the mode and symbol pair match your choices. Friend and Computer are playable; Practice remains a preview.
+4. Select **Start Game**. Confirm the mode and symbol pair match your choices. All three modes are playable; Practice provides manual symbol selection and Undo.
 5. Use **Back to Setup**, **Back to Modes**, and **Back to Home**, then move forward again. Your selected mode and preset should be preserved.
 6. From the Game screen, use **Change Mode** and choose another mode. The previously selected preset should remain selected.
 7. Confirm navigation keeps the URL at `/`. Refresh returns to Home and resets selections to Computer and Classic; nothing is saved between page loads.
@@ -101,7 +101,7 @@ Select **Play vs Friend**, choose a preset, and select **Start Game**. Player 1 
 
 Between sequences, use **New Round/Play Again** or **Back to Setup → Start Game**. Leaving the Game screen discards the round; mode and preset selections remain.
 
-During play, try selecting an occupied cell: it must not replace its symbol or advance the turn. After a result, all cells must be disabled. Use Tab to navigate available cells and Enter or Space to place a symbol. Repeat with another preset, then verify Practice remains a preview and Back/Change Mode still work.
+During play, try selecting an occupied cell: it must not replace its symbol or advance the turn. After a result, all cells must be disabled. Use Tab to navigate available cells and Enter or Space to place a symbol. Repeat with another preset, then verify Back/Change Mode still work.
 
 ### M3 implementation concepts
 
@@ -171,3 +171,22 @@ Browser checks used the local production build: Computer X/O/X starts, all three
 Computer/Friend now show **Reset Match** with confirmation; **Cancel** leaves the match unchanged. Mode Selection starts a fresh X-first sequence without clearing scores. New Round continues alternating and preserving scores. Reset Match preserves difficulty, preset, and other modes' scores. Practice and the AI algorithms are unchanged. Earlier milestone validation notes describe behavior at those milestones.
 
 Refinement validation: 112 tests, lint, TypeScript, and production build passed. Focused tests cover resets in all difficulties, mode re-entry with pending moves, score isolation, and X/O sequencing. Browser checks passed for Cancel/Escape/confirm, clearing an occupied board and current scores, X restart followed by O, Computer → Friend → Computer score preservation and X-first entry, stale mode-change protection, and unchanged Practice controls. No browser console warnings or errors were captured.
+
+
+## M6: Practice Mode
+
+Practice uses the same board, win/draw rules, and scoring reducer as the other modes. Its `turn` value is the manually selected placement symbol and never alternates automatically. Each valid Practice move saves the previous immutable board in `history`. Undo restores the last saved board without changing the selected symbol. If the move completed a round, Undo reverses its recorded score credit once; replaying a result credits it again. Other modes do not record move history or expose Undo.
+
+New Round clears history and selects X while keeping scores. Confirmed Reset Match clears the current mode's board, history, score credit, and scores, selecting X. Undo cannot reach earlier rounds or reverse a cleared score. Leaving Practice discards the board/history but preserves its scores for this page session.
+
+Manual checks after `npm run dev`:
+
+1. Choose Practice and a symbol preset. Verify X is selected, Undo is disabled, and all nine cells are available.
+2. Place three consecutive X marks across the top row. Expect **X Wins!**, highlights, one X point, and disabled placement. Undo: the last mark and point disappear. Place X again: the win counts once again.
+3. Start a new round, choose O, and place two O marks. Select X, then Undo: only the last O disappears and X stays selected. Undo repeatedly until disabled.
+4. To draw, fill cells 1–9 in order with **X, O, X, X, O, O, O, X, X**. Undo the final move and verify the draw point is reversed.
+5. Try Reset Match: Cancel preserves the match; confirm clears board/history/scores and selects X. Switch modes and return: Practice scores survive, but its board/history are fresh. Friend and Computer have no Practice controls.
+
+No AI algorithms, competitive starter behavior, dependencies, or M7/M8 features were changed.
+
+Validation: 150 automated tests, lint, TypeScript, and production build passed. Browser checks passed for X/O consecutive placements, terminal board locking, winning/drawing Undo and replay, repeated Undo, selected-symbol preservation, Reset Match Cancel/confirm, score isolation across modes, fresh history on navigation, Love & Stars display, and Friend/Computer regression checks. No console warnings or errors were captured. Screen-reader speech and M7 viewport optimization were not part of this verification.

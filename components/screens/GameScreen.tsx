@@ -2,7 +2,8 @@ import GameBoard from "@/components/game/GameBoard";
 import GameStatus from "@/components/game/GameStatus";
 import ScoreBoard from "@/components/game/ScoreBoard";
 import GameControls from "@/components/game/GameControls";
-import type { BoardResult, ModeScores, RoundState, SymbolPreset } from "@/types/game";
+import PracticeControls from "@/components/game/PracticeControls";
+import type { BoardResult, ModeScores, Player, RoundState, SymbolPreset } from "@/types/game";
 
 type GameScreenProps = {
   modeName: string;
@@ -13,12 +14,14 @@ type GameScreenProps = {
   onNewRound: () => void;
   onResetMatch: () => void;
   onMove: (index: number) => void;
+  onSelectSymbol: (player: Player) => void;
+  onUndo: () => void;
   onBack: () => void;
   onChangeMode: () => void;
 };
 
-export default function GameScreen({ modeName, preset, round, result, scores, onNewRound, onResetMatch, onMove, onBack, onChangeMode }: GameScreenProps) {
-  const isPlayable = round.mode !== "practice";
+export default function GameScreen({ modeName, preset, round, result, scores, onNewRound, onResetMatch, onMove, onSelectSymbol, onUndo, onBack, onChangeMode }: GameScreenProps) {
+  const completed = result.winner !== null || result.isDraw;
 
   return (
     <section aria-labelledby="game-title">
@@ -28,13 +31,25 @@ export default function GameScreen({ modeName, preset, round, result, scores, on
       <GameStatus mode={round.mode} turn={round.turn} result={result} preset={preset} />
 
       <div className="mt-8 grid items-start gap-8 md:grid-cols-[1fr_300px] md:gap-12">
-        <GameBoard
-          board={round.board}
-          preset={preset}
-          winningCells={result.winningCells}
-          disabled={!isPlayable || (round.mode === "computer" && round.turn === "O") || result.winner !== null || result.isDraw}
-          onMove={onMove}
-        />
+        <div>
+          {round.mode === "practice" && (
+            <PracticeControls
+              selected={round.turn}
+              preset={preset}
+              completed={completed}
+              canUndo={round.history.length > 0}
+              onSelect={onSelectSymbol}
+              onUndo={onUndo}
+            />
+          )}
+          <GameBoard
+            board={round.board}
+            preset={preset}
+            winningCells={result.winningCells}
+            disabled={(round.mode === "computer" && round.turn === "O") || completed}
+            onMove={onMove}
+          />
+        </div>
         <aside aria-label="Game setup summary" className="rounded-2xl border border-muted/20 bg-surface p-6">
           <h2 className="text-lg font-bold">Your setup</h2>
           <dl className="mt-6 space-y-5">
@@ -62,8 +77,7 @@ export default function GameScreen({ modeName, preset, round, result, scores, on
           </dl>
           <ScoreBoard mode={round.mode} scores={scores} />
           <GameControls
-            isPractice={round.mode === "practice"}
-            completed={result.winner !== null || result.isDraw}
+            completed={completed}
             onNewRound={onNewRound}
             onResetMatch={onResetMatch}
             onChangeMode={onChangeMode}

@@ -41,15 +41,15 @@ export default function ConfirmDialog({ modeName, isPractice, onConfirm, onCance
       }}
       className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-purple/40 bg-surface p-6 text-foreground backdrop:bg-background/80"
     >
-      <h2 id="reset-title" className="text-xl font-bold">{isPractice ? "Reset scores?" : "Reset match?"}</h2>
+      <h2 id="reset-title" className="text-xl font-bold">Reset match?</h2>
       <p id="reset-description" className="mt-3 text-sm leading-6 text-muted">
         {isPractice
-          ? `Clear all wins and draws for ${modeName}? Your current board and other modes’ scores will stay unchanged.`
+          ? `Clear the board, move history, and all wins and draws for ${modeName}? Start fresh with X selected. Other modes’ scores will stay unchanged.`
           : `Clear the board and all wins and draws for ${modeName}? Start a fresh match with X going first, then alternate starters. Any pending computer move will be canceled. Other modes’ scores will stay unchanged.`}
       </p>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
         <button ref={cancelRef} type="button" onClick={onCancel} className="button-secondary">Cancel</button>
-        <button ref={confirmRef} type="button" onClick={onConfirm} className="button-primary">{isPractice ? "Reset Scores" : "Reset Match"}</button>
+        <button ref={confirmRef} type="button" onClick={onConfirm} className="button-primary">Reset Match</button>
       </div>
     </dialog>
   );
