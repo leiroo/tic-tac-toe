@@ -21,15 +21,16 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 ## 2. Version 1 features
 
 ### Mode A: Play vs Computer
-- Human is internal `X`; computer is internal `O`. Human starts every round.
-- Difficulty is **Easy only**: computer chooses uniformly from currently empty cells; there is no look-ahead strategy.
+- Human is internal `X`; computer is internal `O`. Starting player alternates each fresh round, beginning with X (approved M5.5 extension).
+- Difficulty defaults to **Easy** (uniformly random empty cell). **Medium** wins immediately if possible, otherwise blocks an immediate human win, otherwise chooses randomly. **Hard** uses optimal Minimax and supports either starting player.
+- Computer-only setup difficulty persists during the page session and is captured for each round; it cannot change mid-round.
 - Human input is disabled during the computer's turn.
 - A short 300–500 ms status delay is permitted; cancel/ignore pending computer actions after restart, mode change, or unmount.
 - If human move ends game, do not schedule a computer move.
 
 ### Mode B: Play vs Friend
 - Two humans play on the **same device**, not online.
-- Player 1 is internal X and starts; Player 2 is O. Alternate after each valid nonterminal move.
+- Player 1 is internal X; Player 2 is O. Starting player alternates each fresh round, beginning with X. Alternate turns after each valid nonterminal move.
 
 ### Mode C: Play With Yourself / Practice
 - One person can manually choose X or O before each move; repeated same-symbol placement is permitted.
@@ -43,8 +44,9 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 - Detect all 8 standard rows, columns, and diagonals; winner has priority over full-board draw. Multiple winning lines still score once.
 - Show turn or status message; announce winning player or draw and highlight winning cells.
 - New Round/Play Again clears board and preserves current mode's scores.
+- Entering Computer or Friend from Mode Selection resets that mode's next starter to X while preserving all scores. New Round/Play Again alternates starters even after unfinished rounds. Returning directly from Game to Setup and starting again consumes the next starter. Reset Match clears the active board/scores and restarts with X; refresh resets both sequences. Practice is unchanged.
 - Change Mode returns to mode selection, discards unfinished round, preserves mode scores for this page session.
-- Reset Scores asks confirmation, resets **only the active mode**, and must avoid double-counting a completed round.
+- Reset Match asks confirmation in Computer/Friend, cancels pending computer moves, clears the active board and mode scores, and starts X with O next. Difficulty, preset, and other modes' scores remain unchanged. Practice retains its score-only Reset Scores confirmation.
 - Four paired symbol presets: Classic (X/O), Love & Stars (♥/★), Sun & Moon (☀/☾), Shapes (◆/●).
 - Presets change **display only**. No icon characters are stored in board state. Selection is finalized at Game Setup for each started round; changing appearance mid-round is not required.
 - Maintain independent score counters per mode: first symbol wins, second symbol wins, draws. Labels vary by mode.
@@ -52,7 +54,7 @@ Build a responsive, single-page Tic-Tac-Toe web application with a Dark Arcade v
 ### Score semantics and tricky cases
 - A result is credited exactly once on the transition from active game to completed game, never simply on render.
 - A Practice Undo that reopens a completed round reverses its existing credited result exactly once.
-- When Reset Scores occurs during a completed round, clear the current mode counters **and** invalidate the round's score credit; a later Undo must not subtract anything or produce negative values.
+- In Practice, when Reset Scores occurs during a completed round, clear the current mode counters **and** invalidate the round's score credit; a later Undo must not subtract anything or produce negative values.
 - A completed round after Reset Scores must not be credited again by rerendering.
 - Refresh loses session game/scores; navigating between the app's own screens does not.
 
@@ -103,7 +105,7 @@ Home → Mode Selection → Game Setup → Game ↔ (New Round / inline Result);
 
 ### Game logic module responsibilities
 - `lib/gameLogic.ts`: pure move checks, winner/draw analysis.
-- `lib/computerAI.ts`: random choice among legal empty cells.
+- `lib/computerAI.ts`: Easy random choice, Medium win/block/random, and Hard Minimax using the shared game rules.
 - `hooks/useTicTacToe.ts`: game reducer and actions/score semantics.
 - `data/symbolPresets.ts`: display mapping for X and O.
 - `types/game.ts`: documented game/domain types.
@@ -158,7 +160,7 @@ All three modes work, all planned game controls and preset options work, no crit
 
 ## 8. Out of scope
 
-Online rooms or invites, authentication, persistence across refreshes, database, leaderboards, multiplayer networking, advanced/minimax AI, custom asset uploads, monetization.
+Online rooms or invites, authentication, persistence across refreshes, database, leaderboards, multiplayer networking, external AI services, custom asset uploads, monetization. Local Medium/Hard AI and alternating starters were approved as the M5.5 scope extension.
 
 ## 9. Planning and approval
 

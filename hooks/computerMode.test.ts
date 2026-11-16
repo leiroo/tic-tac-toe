@@ -61,11 +61,12 @@ describe("Computer rounds", () => {
       expect(gameReducer(state, computerAction(state, index))).toBe(state);
     }
     const next = gameReducer(state, { type: "newRound" });
-    expect(next.round!.turn).toBe("X");
+    expect(next.round!.turn).toBe("O");
     expect(next.round!.presetId).toBe("shapes");
     expect(next.scores).toBe(state.scores);
-    const reset = gameReducer(state, { type: "resetScores" });
-    expect(reset.round!.board).toBe(state.round!.board);
+    const reset = gameReducer(state, { type: "resetMatch" });
+    expect(reset.round!.board.every((cell) => cell === null)).toBe(true);
+    expect(reset.round!.turn).toBe("X");
     expect(reset.scores.computer).toEqual({ X: 0, O: 0, draws: 0 });
     expect(gameReducer(reset, computerAction(reset, 8))).toBe(reset);
   });
@@ -73,7 +74,7 @@ describe("Computer rounds", () => {
   it("rejects a stale response after restart, leave, mode change, and return to Computer", () => {
     const waiting = human(start(), 0);
     const stale = computerAction(waiting, 4);
-    const restarted = human(gameReducer(waiting, { type: "newRound" }), 1);
+    const restarted = gameReducer(waiting, { type: "newRound" });
     expect(restarted.roundId).not.toBe(waiting.roundId);
     expect(gameReducer(restarted, stale)).toBe(restarted);
     // Round identity protects even an action carrying the new board.
@@ -117,19 +118,20 @@ describe("computer effect timer", () => {
     expect(random).toHaveBeenCalledTimes(1);
   });
 
-  it("Reset Scores during thinking preserves the board and still produces only one response", () => {
+  it("Reset Match during thinking clears the board and cancels the response", () => {
     let state = human(start(), 0);
     const board = state.round!.board;
+    const stale: GameAction = { type: "computerMove", index: 1, roundId: state.roundId, board };
     const dispatch = vi.fn((action: GameAction) => { state = gameReducer(state, action); });
     const cleanup = scheduleComputerTurn(state.round, state.roundId, dispatch, () => 0);
     vi.advanceTimersByTime(200);
-    state = gameReducer(state, { type: "resetScores" });
+    state = gameReducer(state, { type: "resetMatch" });
     cleanup();
     scheduleComputerTurn(state.round, state.roundId, dispatch, () => 0);
-    expect(state.round!.board).toBe(board);
+    expect(state.round!.board.every((cell) => cell === null)).toBe(true);
     vi.runAllTimers();
-    expect(dispatch).toHaveBeenCalledTimes(1);
-    expect(state.round!.board.filter((cell) => cell === "O")).toHaveLength(1);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(gameReducer(state, stale)).toBe(state);
     expect(state.round!.turn).toBe("X");
   });
 
@@ -144,7 +146,14 @@ describe("computer effect timer", () => {
       scheduleComputerTurn(state.round, state.roundId, dispatch);
     }
     vi.runAllTimers();
-    expect(dispatch).not.toHaveBeenCalled();
+    if (action === "newRound") {
+      expect(dispatch).toHaveBeenCalledExactlyOnceWith({
+        type: "computerMove", index: expect.any(Number), roundId: state.roundId, board: state.round!.board,
+      });
+      expect(state.round!.board.every((cell) => cell === null)).toBe(true);
+    } else {
+      expect(dispatch).not.toHaveBeenCalled();
+    }
   });
 
   it("does not schedule on human turns, other modes, or terminal human/computer moves", () => {

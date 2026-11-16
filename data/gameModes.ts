@@ -10,7 +10,7 @@ export const gameModes: {
     id: "computer",
     name: "Play vs Computer",
     label: "Solo challenge",
-    description: "Take on an easy computer opponent. You go first.",
+    description: "Take on a computer opponent. Take turns going first.",
   },
   {
     id: "friend",

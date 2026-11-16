@@ -43,6 +43,19 @@ For each milestone: (1) read its scope, (2) ask Codex to inspect and propose min
 **Verify:** Inject/control randomness for deterministic tests; test cancellation, restart, mode switch, and rapid clicks; play several manual rounds.  
 **Boundary:** No Medium/Hard AI or strategic move prediction.
 
+### Milestone M5.5 — Gameplay enhancements (approved scope extension)
+**Depends on:** M5.
+
+**Part A:** Alternate starters independently in Computer/Friend, beginning with X. New Round/Play Again consumes the next starter. Entering a mode from Mode Selection resets its sequence to X and preserves scores. Confirmed Reset Match clears that mode's board/scores and restarts with X, canceling pending computer moves. Practice retains its existing Reset Scores behavior. Refresh resets sequences. Test Part A and report results before Part B.
+
+**Part B:** Retain Easy random play; add Medium win/block/random and optimal Hard Minimax. Add a Computer-only accessible setup selector, default Easy, preserving selection across rounds/navigation.
+
+**Acceptance:** O can open automatically in Computer mode; stale timers remain invalid; scores stay mode-specific and credit once; Hard cannot lose against legal human play with either starter; Friend and Practice behavior remains within scope.
+
+**Verify:** Sequence/reset/navigation tests, exhaustive legal human continuations against Hard, difficulty persistence, timer tests, browser walkthrough, lint, TypeScript, and build.
+
+**Boundary:** No Practice implementation, external AI services, or later milestones. This milestone supersedes M5's Easy-only/human-first boundary for subsequent work.
+
 ### Milestone M6 — Practice mode, manual symbol control and Undo
 **Depends on:** M3 and M4; can be implemented separately from M5.  
 **Tasks:** Manual X/O selector, nonalternating placement, board-history Undo, terminal-result Undo, score-credit reversal and score-reset guard.  

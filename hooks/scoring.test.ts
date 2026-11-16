@@ -58,14 +58,14 @@ describe("session scores", () => {
     expect(gameReducer(before, action).scores.friend.X).toBe(1);
   });
 
-  it("New Round clears board and result, starts X, and preserves config and scores", () => {
+  it("New Round clears board and result, alternates starter, and preserves config and scores", () => {
     const won = play(xWin);
     const next = gameReducer(won, { type: "newRound" });
     expect(next.scores).toBe(won.scores);
-    expect(next.round).toMatchObject({ mode: "friend", presetId: "love-stars", turn: "X", scoreCredit: null });
+    expect(next.round).toMatchObject({ mode: "friend", presetId: "love-stars", turn: "O", scoreCredit: null });
     expect(next.round!.board.every((cell) => cell === null)).toBe(true);
     expect(analyzeBoard(next.round!.board)).toEqual({ winner: null, winningCells: [], isDraw: false });
-    const second = play(oWin, next);
+    const second = play(xWin, next); // The first mover is now O.
     const third = play(draw, gameReducer(second, { type: "newRound" }));
     expect(third.scores.friend).toEqual({ X: 1, O: 1, draws: 1 });
   });
@@ -90,6 +90,7 @@ describe("session scores", () => {
 
   it.each<GameMode>(["computer", "friend", "practice"])("resets only active %s scores", (mode) => {
     const state = start({
+      ...createInitialGameState(),
       roundId: 0,
       round: null,
       scores: {
@@ -98,31 +99,37 @@ describe("session scores", () => {
         practice: { X: 7, O: 8, draws: 9 },
       },
     }, mode);
-    const reset = gameReducer(state, { type: "resetScores" });
+    const reset = gameReducer(state, { type: "resetMatch" });
     expect(reset.scores[mode]).toEqual({ X: 0, O: 0, draws: 0 });
     for (const other of ["computer", "friend", "practice"] as const) {
       if (other !== mode) expect(reset.scores[other]).toBe(state.scores[other]);
     }
-    expect(reset.round!.board).toBe(state.round!.board);
+    if (mode === "practice") expect(reset.round!.board).toBe(state.round!.board);
+    else {
+      expect(reset.round!.board.every((cell) => cell === null)).toBe(true);
+      expect(reset.round!.turn).toBe("X");
+    }
   });
 
-  it("clears completed-round credit without reopening or recounting the round", () => {
+  it("replaces a completed round with an empty X-start round and zero scores", () => {
     const won = play(xWin);
-    const reset = gameReducer(won, { type: "resetScores" });
+    const reset = gameReducer(won, { type: "resetMatch" });
     expect(reset.round!.scoreCredit).toBeNull();
-    expect(reset.round!.board).toBe(won.round!.board);
-    expect(analyzeBoard(reset.round!.board).winner).toBe("X");
-    expect(gameReducer(reset, { type: "move", index: 5, player: "X" })).toBe(reset);
+    expect(reset.round!.board.every((cell) => cell === null)).toBe(true);
+    expect(analyzeBoard(reset.round!.board)).toEqual({ winner: null, winningCells: [], isDraw: false });
+    expect(reset.round!.turn).toBe("X");
+    expect(reset.roundId).not.toBe(won.roundId);
     expect(reset.scores.friend).toEqual({ X: 0, O: 0, draws: 0 });
-    expect(play(xWin, gameReducer(reset, { type: "newRound" })).scores.friend.X).toBe(1);
+    expect(play(xWin, reset).scores.friend.X).toBe(1);
   });
 
-  it("keeps an active board and turn during reset and credits its later result", () => {
+  it("discards an unfinished O-start round on Reset Match", () => {
     const partial = play([0, 3, 1, 4], gameReducer(play(xWin), { type: "newRound" }));
-    const reset = gameReducer(partial, { type: "resetScores" });
-    expect(reset.round!.board).toBe(partial.round!.board);
-    expect(reset.round!.turn).toBe(partial.round!.turn);
-    expect(play([2], reset).scores.friend.X).toBe(1);
+    const reset = gameReducer(partial, { type: "resetMatch" });
+    expect(reset.round!.board.every((cell) => cell === null)).toBe(true);
+    expect(reset.round!.turn).toBe("X");
+    expect(reset.scores.friend).toEqual({ X: 0, O: 0, draws: 0 });
+    expect(play(xWin, reset).scores.friend.X).toBe(1);
   });
 
   it("initializes fresh independent zero scores for a new page session", () => {
@@ -137,6 +144,6 @@ describe("session scores", () => {
   it("ignores round controls when no round is active", () => {
     const state = createInitialGameState();
     expect(gameReducer(state, { type: "newRound" })).toBe(state);
-    expect(gameReducer(state, { type: "resetScores" })).toBe(state);
+    expect(gameReducer(state, { type: "resetMatch" })).toBe(state);
   });
 });

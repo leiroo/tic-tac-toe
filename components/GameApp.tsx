@@ -30,6 +30,7 @@ export default function GameApp() {
   }, [currentScreen]);
 
   function chooseMode(nextMode: GameMode) {
+    game.enterMode(nextMode);
     setSelectedMode(nextMode);
     setCurrentScreen("setup");
   }
@@ -70,6 +71,9 @@ export default function GameApp() {
         {currentScreen === "setup" && (
           <GameSetupScreen
             modeName={mode.name}
+            mode={selectedMode}
+            difficulty={game.difficulty}
+            onDifficultyChange={game.setDifficulty}
             preset={preset}
             onPresetChange={setSelectedPresetId}
             onBack={() => setCurrentScreen("modes")}
@@ -84,7 +88,7 @@ export default function GameApp() {
             result={game.result}
             scores={game.scores[game.round.mode]}
             onNewRound={game.newRound}
-            onResetScores={() => setShowResetDialog(true)}
+            onResetMatch={() => setShowResetDialog(true)}
             onMove={game.playMove}
             onBack={() => leaveGame("setup")}
             onChangeMode={() => leaveGame("modes")}
@@ -95,8 +99,9 @@ export default function GameApp() {
       {showResetDialog && (
         <ConfirmDialog
           modeName={mode.name}
+          isPractice={selectedMode === "practice"}
           onCancel={() => setShowResetDialog(false)}
-          onConfirm={() => { game.resetScores(); setShowResetDialog(false); }}
+          onConfirm={() => { game.resetMatch(); setShowResetDialog(false); }}
         />
       )}
 

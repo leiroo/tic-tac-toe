@@ -22,7 +22,7 @@ describe("Friend round transitions", () => {
   it("starts with X, an empty board, and the chosen configuration", () => {
     const state = startRound("friend", "love-stars");
     expect(state).toEqual({
-      board: Array(9).fill(null), turn: "X", mode: "friend", presetId: "love-stars", scoreCredit: null,
+      board: Array(9).fill(null), turn: "X", mode: "friend", presetId: "love-stars", difficulty: "easy", scoreCredit: null,
     });
   });
 

@@ -1,15 +1,19 @@
 import SymbolPicker from "@/components/ui/SymbolPicker";
-import type { SymbolPreset, SymbolPresetId } from "@/types/game";
+import DifficultyPicker from "@/components/ui/DifficultyPicker";
+import type { Difficulty, GameMode, SymbolPreset, SymbolPresetId } from "@/types/game";
 
 type GameSetupScreenProps = {
   modeName: string;
+  mode: GameMode;
+  difficulty: Difficulty;
+  onDifficultyChange: (difficulty: Difficulty) => void;
   preset: SymbolPreset;
   onPresetChange: (id: SymbolPresetId) => void;
   onBack: () => void;
   onStart: () => void;
 };
 
-export default function GameSetupScreen({ modeName, preset, onPresetChange, onBack, onStart }: GameSetupScreenProps) {
+export default function GameSetupScreen({ modeName, mode, difficulty, onDifficultyChange, preset, onPresetChange, onBack, onStart }: GameSetupScreenProps) {
   return (
     <section aria-labelledby="setup-title">
       <button type="button" onClick={onBack} className="button-back">← Back to Modes</button>
@@ -18,6 +22,10 @@ export default function GameSetupScreen({ modeName, preset, onPresetChange, onBa
       <p className="mt-3 text-muted">{modeName} <span aria-hidden="true" className="px-2 text-purple">/</span> Same game, your style.</p>
 
       <div className="mt-8"><SymbolPicker selectedId={preset.id} onChange={onPresetChange} /></div>
+
+      {mode === "computer" && (
+        <div className="mt-8"><DifficultyPicker selected={difficulty} onChange={onDifficultyChange} /></div>
+      )}
 
       <div className="mt-8 flex flex-col gap-6 rounded-2xl border border-muted/20 bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div aria-live="polite" aria-atomic="true">
