@@ -149,18 +149,25 @@ Validation: automated tests cover random selection intervals, terminal boards, h
 
 ## M5.5: Alternating starters and difficulty
 
-Computer and Friend each remember their next starter, initially X. Creating a board with Start Game or New Round/Play Again consumes that starter and flips it for that mode. This includes unfinished rounds and returning from setup or another mode. Players keep their X/O assignments. Navigation alone and Reset Scores do not change the sequence; refresh resets it. Practice is unchanged.
+Computer and Friend each remember their next starter, initially X. Creating a board with Start Game or New Round/Play Again consumes that starter and flips it for that mode. This includes unfinished rounds and returning directly from Game to Setup. Entering Computer/Friend from Mode Selection resets that mode to X while preserving all scores. Players keep their X/O assignments. Confirmed Reset Match clears that mode's board/scores, cancels pending moves, and restarts with X (O next). Difficulty and preset remain selected. Refresh resets the session. Practice retains its existing Reset Scores behavior.
 
 The Computer-only setup selector defaults to Easy and persists for the page session. Each started round captures its difficulty; mid-round difficulty changes are rejected. Easy remains uniformly random. Medium checks for an O win, then blocks an X win, then chooses randomly. Hard uses Minimax to explore possible continuations, assuming both players choose their best outcome; repeated positions are cached within each search. It prefers faster wins and supports both starting orders. All levels share the existing win/draw rules, 400 ms timer, and stale-action guards.
 
 Manual checks:
 
 1. Start Computer: X starts. New Round: O opens automatically. New Round again: X starts. Rapidly restart during the opening delay and confirm no stale O appears in the X-start round.
-2. Switch to Friend: its first round starts X, its second starts O. Return to Computer with Start Game: its next starter is preserved independently.
-3. Reset Scores and confirm the current turn and next starter stay unchanged. Check O-start wins credit Player 2/Computer once.
+2. Switch to Friend: its first round starts X, its second starts O. Return to Computer through Mode Selection: it starts X again and retains its scores.
+3. Reset Match and confirm the board and current mode scores clear, X starts, and the next New Round starts O. Check O-start wins credit Player 2/Computer once.
 4. In Computer setup, choose Easy, Medium, or Hard using mouse or arrow keys. The selection should persist through rounds and returning to setup. The selector must be absent in Friend and Practice.
 5. Try to beat Hard with either starting order. Check different symbol presets, score preservation, resets, and navigation. Refresh: Easy, X-first sequences, and zero scores return.
 
 Validation: Part A passed 94 tests, lint, and TypeScript before Part B began. Final validation passed 108 tests, lint, TypeScript, and production build. Tests exhaustively explore every legal human continuation against Hard from both starting orders and find no human wins. Tests also cover Medium priorities, Easy probability intervals, O openings in every difficulty, sequences, difficulty persistence, scores, and stale timers.
 
 Browser checks used the local production build: Computer X/O/X starts, all three difficulty openings, two Hard computer wins, Friend O-start win, independent sequences/scores, reset confirmation, restart and mode-change cancellation, keyboard difficulty selection, Love & Stars display, hidden selectors in Friend/Practice, refresh defaults, and 375 px mobile layout passed. No console errors or warnings were captured. Screen-reader speech was not manually tested. No dependencies were added; M6/M7 were not started.
+
+
+### M5.5 reset refinement
+
+Computer/Friend now show **Reset Match** with confirmation; **Cancel** leaves the match unchanged. Mode Selection starts a fresh X-first sequence without clearing scores. New Round continues alternating and preserving scores. Reset Match preserves difficulty, preset, and other modes' scores. Practice and the AI algorithms are unchanged. Earlier milestone validation notes describe behavior at those milestones.
+
+Refinement validation: 112 tests, lint, TypeScript, and production build passed. Focused tests cover resets in all difficulties, mode re-entry with pending moves, score isolation, and X/O sequencing. Browser checks passed for Cancel/Escape/confirm, clearing an occupied board and current scores, X restart followed by O, Computer → Friend → Computer score preservation and X-first entry, stale mode-change protection, and unchanged Practice controls. No browser console warnings or errors were captured.

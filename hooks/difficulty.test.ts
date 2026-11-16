@@ -5,6 +5,25 @@ import type { Difficulty } from "@/types/game";
 describe("difficulty selection and rounds", () => {
   afterEach(() => vi.useRealTimers());
 
+  it.each<Difficulty>(["easy", "medium", "hard"])("Reset Match keeps %s and the preset while canceling a pending opening", (difficulty) => {
+    vi.useFakeTimers();
+    let state = gameReducer(createInitialGameState(), { type: "setDifficulty", difficulty });
+    state = gameReducer(state, { type: "start", mode: "computer", presetId: "shapes" });
+    state = gameReducer(state, { type: "newRound" });
+    const stale: GameAction = { type: "computerMove", index: 0, roundId: state.roundId, board: state.round!.board };
+    const dispatch = vi.fn();
+    const cleanup = scheduleComputerTurn(state.round, state.roundId, dispatch);
+    state = gameReducer(state, { type: "resetMatch" });
+    cleanup();
+    scheduleComputerTurn(state.round, state.roundId, dispatch);
+    vi.runAllTimers();
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(state.round).toMatchObject({ turn: "X", difficulty, presetId: "shapes", scoreCredit: null });
+    expect(state.round!.board.every((cell) => cell === null)).toBe(true);
+    expect(gameReducer(state, stale)).toBe(state);
+    expect(gameReducer(state, { type: "newRound" }).round!.turn).toBe("O");
+  });
+
   it("defaults to Easy and preserves selection across rounds, setup, and mode changes", () => {
     let state = createInitialGameState();
     expect(state.difficulty).toBe("easy");

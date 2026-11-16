@@ -46,7 +46,7 @@ For each milestone: (1) read its scope, (2) ask Codex to inspect and propose min
 ### Milestone M5.5 — Gameplay enhancements (approved scope extension)
 **Depends on:** M5.
 
-**Part A:** Alternate starters independently in Computer/Friend, beginning with X. New Round/Play Again and Start Game consume the next starter; mode navigation and Reset Scores preserve sequences. Refresh resets sequences. Test Part A and report results before Part B.
+**Part A:** Alternate starters independently in Computer/Friend, beginning with X. New Round/Play Again consumes the next starter. Entering a mode from Mode Selection resets its sequence to X and preserves scores. Confirmed Reset Match clears that mode's board/scores and restarts with X, canceling pending computer moves. Practice retains its existing Reset Scores behavior. Refresh resets sequences. Test Part A and report results before Part B.
 
 **Part B:** Retain Easy random play; add Medium win/block/random and optimal Hard Minimax. Add a Computer-only accessible setup selector, default Easy, preserving selection across rounds/navigation.
 

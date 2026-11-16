@@ -22,26 +22,28 @@ describe("independent starting-player sequences", () => {
     expect(state.scores).toEqual(createInitialGameState().scores);
   });
 
-  it("preserves each sequence through mode changes and advances on Start Game", () => {
+  it("resets the selected mode to X on entry without clearing any scores", () => {
     let state = start(createInitialGameState(), "computer");
+    state = { ...state, scores: { computer: { X: 2, O: 1, draws: 3 }, friend: { X: 4, O: 5, draws: 6 }, practice: { X: 7, O: 8, draws: 9 } } };
+    const scores = state.scores;
     state = gameReducer(state, { type: "leave" });
-    expect(state.nextStarter).toEqual({ computer: "O", friend: "X" });
-    state = start(state, "friend");
-    expect(state.round!.turn).toBe("X");
-    state = start(state, "computer");
-    expect(state.round!.turn).toBe("O");
-    state = start(state, "friend");
-    expect(state.round!.turn).toBe("O");
-    state = start(state, "computer");
-    expect(state.round!.turn).toBe("X");
+    for (const mode of ["friend", "computer", "friend"] as const) {
+      state = gameReducer(state, { type: "enterMode", mode });
+      expect(state.round).toBeNull();
+      expect(state.scores).toBe(scores);
+      state = start(state, mode);
+      expect(state.round!.turn).toBe("X");
+      state = gameReducer(state, { type: "newRound" });
+      expect(state.round!.turn).toBe("O");
+    }
   });
 
-  it("Reset Scores changes neither the current turn nor the next starter", () => {
+  it("Reset Match restarts with X and New Round then starts O", () => {
     const state = gameReducer(start(createInitialGameState(), "friend"), { type: "newRound" });
-    const reset = gameReducer(state, { type: "resetScores" });
-    expect(reset.round!.turn).toBe("O");
-    expect(reset.nextStarter).toBe(state.nextStarter);
-    expect(gameReducer(reset, { type: "newRound" }).round!.turn).toBe("X");
+    const reset = gameReducer(state, { type: "resetMatch" });
+    expect(reset.round!.turn).toBe("X");
+    expect(reset.nextStarter.friend).toBe("O");
+    expect(gameReducer(reset, { type: "newRound" }).round!.turn).toBe("O");
   });
 
   it("allows O to start and win a Friend round without changing player symbols", () => {
@@ -51,6 +53,24 @@ describe("independent starting-player sequences", () => {
     }
     expect(state.round!.board.slice(0, 3)).toEqual(["O", "O", "O"]);
     expect(state.scores.friend).toEqual({ X: 0, O: 1, draws: 0 });
+  });
+
+  it("mode re-entry cancels pending moves and rejects old actions even on a later O turn", () => {
+    vi.useFakeTimers();
+    let state = gameReducer(start(createInitialGameState(), "computer"), { type: "newRound" });
+    const stale: GameAction = { type: "computerMove", index: 0, roundId: state.roundId, board: state.round!.board };
+    const dispatch = vi.fn();
+    const cleanup = scheduleComputerTurn(state.round, state.roundId, dispatch);
+    state = gameReducer(state, { type: "enterMode", mode: "computer" });
+    cleanup();
+    expect(state.round).toBeNull();
+    state = start(state, "computer");
+    scheduleComputerTurn(state.round, state.roundId, dispatch);
+    vi.runAllTimers();
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(state.round!.turn).toBe("X");
+    state = gameReducer(state, { type: "move", index: 4, player: "X" });
+    expect(gameReducer(state, stale)).toBe(state);
   });
 
   it("automatically opens with O, and cancels an opening move when restarted", () => {

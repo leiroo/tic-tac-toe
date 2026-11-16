@@ -11,13 +11,13 @@ type GameScreenProps = {
   result: BoardResult;
   scores: ModeScores;
   onNewRound: () => void;
-  onResetScores: () => void;
+  onResetMatch: () => void;
   onMove: (index: number) => void;
   onBack: () => void;
   onChangeMode: () => void;
 };
 
-export default function GameScreen({ modeName, preset, round, result, scores, onNewRound, onResetScores, onMove, onBack, onChangeMode }: GameScreenProps) {
+export default function GameScreen({ modeName, preset, round, result, scores, onNewRound, onResetMatch, onMove, onBack, onChangeMode }: GameScreenProps) {
   const isPlayable = round.mode !== "practice";
 
   return (
@@ -62,9 +62,10 @@ export default function GameScreen({ modeName, preset, round, result, scores, on
           </dl>
           <ScoreBoard mode={round.mode} scores={scores} />
           <GameControls
+            isPractice={round.mode === "practice"}
             completed={result.winner !== null || result.isDraw}
             onNewRound={onNewRound}
-            onResetScores={onResetScores}
+            onResetMatch={onResetMatch}
             onChangeMode={onChangeMode}
           />
         </aside>
