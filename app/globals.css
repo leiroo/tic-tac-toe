@@ -40,15 +40,50 @@ h1:focus {
   }
 
   .screen-title {
-    @apply mt-3 text-3xl font-bold tracking-tight sm:text-5xl;
+    @apply mt-2 font-bold tracking-tight;
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.15;
+  }
+
+  .home-title {
+    font-size: clamp(3.5rem, min(10vw, 14svh), 5.5rem);
+  }
+
+  .game-layout {
+    @apply mt-4 grid items-start gap-5 md:grid-cols-[minmax(0,1fr)_280px] md:gap-8;
+  }
+
+  /* Leave room for navigation and status; small screens can still scroll. */
+  .board-panel {
+    --board-size: clamp(14rem, calc(100svh - 19rem), 22.5rem);
+    width: min(100%, var(--board-size));
+    margin-inline: auto;
+  }
+
+  .board-panel-practice {
+    --board-size: clamp(14rem, calc(100svh - 23rem), 22.5rem);
+  }
+
+  .game-cell {
+    font-size: clamp(2rem, calc(var(--board-size) / 7), 3rem);
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .game-cell:enabled:hover {
+    background: color-mix(in srgb, var(--color-cyan) 6%, var(--color-surface));
+  }
+
+  .symbol-appear,
+  .result-appear {
+    animation: appear 160ms ease-out;
   }
 
   .button-primary {
-    @apply inline-flex min-h-12 items-center justify-center gap-4 rounded-xl bg-cyan px-6 py-3 text-sm font-bold text-background transition-colors hover:bg-cyan/85;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan px-4 py-2 text-sm font-bold text-background transition-colors enabled:hover:bg-cyan/85 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .button-secondary {
-    @apply inline-flex min-h-12 items-center justify-center rounded-xl border border-purple/50 px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-purple/10;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-purple/50 px-3 py-2 text-sm font-semibold text-foreground transition-colors enabled:hover:bg-purple/10 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .button-back {
@@ -56,8 +91,17 @@ h1:focus {
   }
 
   .mode-card {
-    @apply flex h-full flex-col rounded-2xl border border-muted/20 bg-surface p-6 text-left transition-colors hover:border-cyan/70;
+    @apply flex h-full flex-col rounded-2xl border border-muted/20 bg-surface p-4 text-left transition-colors hover:border-cyan/70 aria-pressed:border-cyan/70 aria-pressed:bg-cyan/5;
   }
+}
+
+button:enabled:active {
+  filter: brightness(0.9);
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

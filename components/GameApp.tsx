@@ -47,7 +47,7 @@ export default function GameApp() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-6 sm:px-8">
+      <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
         <p className="flex items-center gap-3 text-sm font-bold tracking-[0.16em]">
           <span aria-hidden="true" className="text-xl tracking-normal">
             <span className="text-cyan">X</span><span className="text-magenta">O</span>
@@ -57,7 +57,7 @@ export default function GameApp() {
         <span className="text-xs text-muted">Tic-Tac-Toe</span>
       </header>
 
-      <main ref={mainRef} className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-5 py-8 sm:px-8 sm:py-12">
+      <main ref={mainRef} className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-4 sm:px-8">
         {currentScreen === "home" && (
           <HomeScreen onStart={() => setCurrentScreen("modes")} />
         )}
@@ -107,8 +107,8 @@ export default function GameApp() {
         />
       )}
 
-      <footer className="mx-auto w-full max-w-5xl px-5 py-6 text-xs text-muted sm:px-8">
-        <div className="border-t border-muted/15 pt-5">Three ways to play. One classic board.</div>
+      <footer className="mx-auto w-full max-w-5xl px-4 py-3 text-xs text-muted sm:px-8">
+        <div className="border-t border-muted/15 pt-3">Three ways to play. One classic board.</div>
       </footer>
     </div>
   );

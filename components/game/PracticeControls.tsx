@@ -11,24 +11,26 @@ type PracticeControlsProps = {
 
 export default function PracticeControls({ selected, preset, completed, canUndo, onSelect, onUndo }: PracticeControlsProps) {
   return (
-    <div className="mx-auto mb-5 w-full max-w-[360px]">
-      <div role="group" aria-label="Placement symbol" className="grid grid-cols-2 gap-3">
+    <div className="mb-3 grid grid-cols-[1fr_auto] gap-2">
+      <div role="group" aria-label="Placement symbol" className="grid grid-cols-2 gap-2">
         {(["X", "O"] as const).map((player) => (
           <button
             key={player}
             type="button"
-            aria-label={`Select ${player}`}
+            aria-label={`Select ${player} (${preset.symbols[player]})`}
             aria-pressed={selected === player}
             disabled={completed}
             onClick={() => onSelect(player)}
-            className={`${selected === player ? "button-primary" : "button-secondary"} disabled:opacity-60`}
+            className={`button-secondary px-2 ${selected === player
+              ? player === "X" ? "border-cyan bg-cyan/10 text-cyan" : "border-magenta bg-magenta/10 text-magenta"
+              : "text-muted"}`}
           >
+            <span className="text-xs">Place</span>
             <span aria-hidden="true">{preset.symbols[player]}</span>
-            <span className="text-sm">Place {player}</span>
           </button>
         ))}
       </div>
-      <button type="button" disabled={!canUndo} onClick={onUndo} className="button-secondary mt-3 w-full disabled:opacity-40">Undo</button>
+      <button type="button" disabled={!canUndo} onClick={onUndo} className="button-secondary">Undo</button>
     </div>
   );
 }
