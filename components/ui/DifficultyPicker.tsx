@@ -12,8 +12,8 @@ export default function DifficultyPicker({ selected, onChange }: {
 }) {
   return (
     <fieldset>
-      <legend className="mb-4 text-sm font-semibold text-muted">Computer difficulty</legend>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <legend className="mb-2 text-sm font-semibold text-muted">Computer difficulty</legend>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {options.map(({ id, label, description }) => (
           <label key={id} className="cursor-pointer">
             <input
@@ -25,8 +25,8 @@ export default function DifficultyPicker({ selected, onChange }: {
               aria-label={label}
               className="peer sr-only"
             />
-            <span className="flex min-h-20 flex-col justify-center rounded-xl border border-muted/20 bg-surface px-4 py-3 transition-colors hover:border-purple peer-checked:border-cyan peer-checked:bg-cyan/5 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-cyan">
-              <span className="font-semibold">{label}</span>
+            <span className="flex h-full min-h-20 flex-col justify-center rounded-xl border border-muted/20 bg-surface px-3 py-2 transition-colors hover:border-purple peer-checked:border-cyan peer-checked:bg-cyan/5 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-cyan">
+              <span className="text-sm font-semibold">{label}</span>
               <span className="mt-1 text-xs text-muted">{description}</span>
             </span>
           </label>

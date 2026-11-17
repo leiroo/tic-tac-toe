@@ -11,7 +11,7 @@ type GameBoardProps = {
 
 export default function GameBoard({ board, preset, winningCells, disabled, onMove }: GameBoardProps) {
   return (
-    <div role="group" aria-label="Tic-Tac-Toe board" aria-describedby="board-status" className="mx-auto grid w-full max-w-[360px] grid-cols-3 gap-3">
+    <div role="group" aria-label="Tic-Tac-Toe board" aria-describedby="board-status" className="grid w-full grid-cols-3 gap-2 sm:gap-3">
       {board.map((value, index) => (
         <GameCell
           key={index}
