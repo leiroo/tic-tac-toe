@@ -9,7 +9,7 @@ const labels: Record<GameMode, [string, string]> = {
 export default function ScoreBoard({ mode, scores }: { mode: GameMode; scores: ModeScores }) {
   return (
     <section aria-labelledby="scoreboard-title" className="mt-4 border-t border-muted/20 pt-3">
-      <h3 id="scoreboard-title" className="text-sm font-semibold">Session scores</h3>
+      <h3 id="scoreboard-title" className="text-sm font-semibold">Match scores</h3>
       <dl aria-live="polite" aria-atomic="true" className="mt-2 grid grid-cols-3 gap-2 text-center">
         {[{ key: "X", label: labels[mode][0], color: "text-cyan" },
           { key: "O", label: labels[mode][1], color: "text-magenta" },

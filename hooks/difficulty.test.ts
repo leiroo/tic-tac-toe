@@ -5,7 +5,7 @@ import type { Difficulty, GameMode } from "@/types/game";
 describe("difficulty selection and rounds", () => {
   afterEach(() => vi.useRealTimers());
 
-  it.each<GameMode>(["computer", "friend", "practice"])("Home preference reset after %s preserves every scoreboard and starter sequence", (mode) => {
+  it.each<GameMode>(["computer", "friend", "practice"])("Home preference reset after %s clears every scoreboard and starter sequence", (mode) => {
     let state = createInitialGameState();
     state = { ...state, scores: {
       computer: { X: 2, O: 1, draws: 3 },
@@ -14,21 +14,19 @@ describe("difficulty selection and rounds", () => {
     } };
     state = gameReducer(state, { type: "setDifficulty", difficulty: "hard" });
     state = gameReducer(state, { type: "start", mode, presetId: "love-stars" });
-    const scores = state.scores;
-    const starters = state.nextStarter;
 
     // The Home handler leaves the round before applying the setup-only setting.
     state = gameReducer(state, { type: "leave" });
     state = gameReducer(state, { type: "setDifficulty", difficulty: "easy" });
     expect(state.round).toBeNull();
     expect(state.difficulty).toBe("easy");
-    expect(state.scores).toBe(scores);
-    expect(state.nextStarter).toBe(starters);
+    expect(state.scores).toEqual(createInitialGameState().scores);
+    expect(state.nextStarter).toEqual({ computer: "X", friend: "X" });
 
     state = gameReducer(state, { type: "enterMode", mode: "computer" });
     state = gameReducer(state, { type: "start", mode: "computer", presetId: "classic" });
     expect(state.round).toMatchObject({ difficulty: "easy", presetId: "classic", turn: "X" });
-    expect(state.scores).toBe(scores);
+    expect(state.scores).toEqual(createInitialGameState().scores);
   });
 
   it.each<Difficulty>(["easy", "medium", "hard"])("Reset Match keeps %s and the preset while canceling a pending opening", (difficulty) => {
@@ -79,7 +77,7 @@ describe("difficulty selection and rounds", () => {
     state = gameReducer(state, { type: "leave" });
     state = gameReducer(state, { type: "setDifficulty", difficulty: "hard" });
     state = gameReducer(state, { type: "start", mode: "computer", presetId: "classic" });
-    expect(state.round!.turn).toBe("O");
+    expect(state.round!.turn).toBe("X");
     expect(gameReducer(state, oldMove)).toBe(state);
   });
 
