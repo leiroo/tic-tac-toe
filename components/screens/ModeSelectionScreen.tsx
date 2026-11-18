@@ -2,12 +2,11 @@ import { gameModes } from "@/data/gameModes";
 import type { GameMode } from "@/types/game";
 
 type ModeSelectionScreenProps = {
-  selectedMode: GameMode;
   onSelect: (mode: GameMode) => void;
   onBack: () => void;
 };
 
-export default function ModeSelectionScreen({ selectedMode, onSelect, onBack }: ModeSelectionScreenProps) {
+export default function ModeSelectionScreen({ onSelect, onBack }: ModeSelectionScreenProps) {
   return (
     <section aria-labelledby="modes-title">
       <button type="button" onClick={onBack} className="button-back">← Back to Home</button>
@@ -22,12 +21,10 @@ export default function ModeSelectionScreen({ selectedMode, onSelect, onBack }: 
             type="button"
             onClick={() => onSelect(mode.id)}
             className="mode-card group"
-            aria-pressed={mode.id === selectedMode}
-            aria-label={`${mode.name}${mode.id === selectedMode ? ", currently selected" : ""}`}
+            aria-label={mode.name}
           >
             <span className="flex items-center justify-between gap-3">
               <span className="font-mono text-2xl text-purple" aria-hidden="true">0{index + 1}</span>
-              {mode.id === selectedMode && <span className="rounded-full border border-cyan/40 px-3 py-1 text-xs text-cyan">Selected</span>}
             </span>
             <span className="mt-3 block text-xs font-semibold tracking-wide text-purple">{mode.label}</span>
             <span className="mt-1 block text-xl font-bold">{mode.name}</span>

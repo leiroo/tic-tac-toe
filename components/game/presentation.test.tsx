@@ -44,8 +44,11 @@ it("announces a draw without attributing it to a player symbol", () => {
   expect(html).not.toContain("symbol:");
 });
 
-it("exposes exactly one selected mode", () => {
-  const html = renderToStaticMarkup(<ModeSelectionScreen selectedMode="practice" onSelect={noop} onBack={noop} />);
-  expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
-  expect(html).toContain('aria-label="Practice Mode, currently selected"');
+it("renders all modes as neutral navigation buttons", () => {
+  const html = renderToStaticMarkup(<ModeSelectionScreen onSelect={noop} onBack={noop} />);
+  expect(html).not.toContain("aria-pressed");
+  expect(html).not.toMatch(/selected/i);
+  for (const name of ["Play vs Computer", "Play vs Friend", "Practice Mode"]) {
+    expect(html).toContain(`aria-label="${name}"`);
+  }
 });
