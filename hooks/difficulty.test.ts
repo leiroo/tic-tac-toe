@@ -1,9 +1,35 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createInitialGameState, gameReducer, scheduleComputerTurn, type GameAction } from "./useTicTacToe";
-import type { Difficulty } from "@/types/game";
+import type { Difficulty, GameMode } from "@/types/game";
 
 describe("difficulty selection and rounds", () => {
   afterEach(() => vi.useRealTimers());
+
+  it.each<GameMode>(["computer", "friend", "practice"])("Home preference reset after %s preserves every scoreboard and starter sequence", (mode) => {
+    let state = createInitialGameState();
+    state = { ...state, scores: {
+      computer: { X: 2, O: 1, draws: 3 },
+      friend: { X: 4, O: 2, draws: 1 },
+      practice: { X: 1, O: 3, draws: 2 },
+    } };
+    state = gameReducer(state, { type: "setDifficulty", difficulty: "hard" });
+    state = gameReducer(state, { type: "start", mode, presetId: "love-stars" });
+    const scores = state.scores;
+    const starters = state.nextStarter;
+
+    // The Home handler leaves the round before applying the setup-only setting.
+    state = gameReducer(state, { type: "leave" });
+    state = gameReducer(state, { type: "setDifficulty", difficulty: "easy" });
+    expect(state.round).toBeNull();
+    expect(state.difficulty).toBe("easy");
+    expect(state.scores).toBe(scores);
+    expect(state.nextStarter).toBe(starters);
+
+    state = gameReducer(state, { type: "enterMode", mode: "computer" });
+    state = gameReducer(state, { type: "start", mode: "computer", presetId: "classic" });
+    expect(state.round).toMatchObject({ difficulty: "easy", presetId: "classic", turn: "X" });
+    expect(state.scores).toBe(scores);
+  });
 
   it.each<Difficulty>(["easy", "medium", "hard"])("Reset Match keeps %s and the preset while canceling a pending opening", (difficulty) => {
     vi.useFakeTimers();
