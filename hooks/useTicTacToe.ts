@@ -77,6 +77,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         round: null,
+        scores: createInitialGameState().scores,
         roundId: state.roundId + 1,
         nextStarter: action.mode === "practice" ? state.nextStarter : { ...state.nextStarter, [action.mode]: "X" },
       };
@@ -86,7 +87,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case "start":
       return startRound(state, action.mode, action.presetId);
     case "leave":
-      return { ...state, round: null };
+      return { ...state, round: null, roundId: state.roundId + 1,
+        scores: createInitialGameState().scores, nextStarter: { computer: "X", friend: "X" } };
     case "newRound":
       return round ? startRound(state, round.mode, round.presetId, round.difficulty) : state;
     case "resetMatch": {

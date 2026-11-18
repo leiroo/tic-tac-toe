@@ -22,15 +22,14 @@ describe("independent starting-player sequences", () => {
     expect(state.scores).toEqual(createInitialGameState().scores);
   });
 
-  it("resets the selected mode to X on entry without clearing any scores", () => {
+  it("resets the selected mode to X on entry with zero match scores", () => {
     let state = start(createInitialGameState(), "computer");
     state = { ...state, scores: { computer: { X: 2, O: 1, draws: 3 }, friend: { X: 4, O: 5, draws: 6 }, practice: { X: 7, O: 8, draws: 9 } } };
-    const scores = state.scores;
     state = gameReducer(state, { type: "leave" });
     for (const mode of ["friend", "computer", "friend"] as const) {
       state = gameReducer(state, { type: "enterMode", mode });
       expect(state.round).toBeNull();
-      expect(state.scores).toBe(scores);
+      expect(state.scores).toEqual(createInitialGameState().scores);
       state = start(state, mode);
       expect(state.round!.turn).toBe("X");
       state = gameReducer(state, { type: "newRound" });

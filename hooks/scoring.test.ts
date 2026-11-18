@@ -17,7 +17,7 @@ const xWin = [0, 3, 1, 4, 2];
 const oWin = [0, 3, 1, 4, 8, 5];
 const draw = [0, 1, 2, 4, 3, 5, 7, 6, 8];
 
-describe("session scores", () => {
+describe("match scores", () => {
   it.each([
     { name: "X win", moves: xWin, expected: { X: 1, O: 0, draws: 0 }, credit: "X" },
     { name: "O win", moves: oWin, expected: { X: 0, O: 1, draws: 0 }, credit: "O" },
@@ -77,13 +77,13 @@ describe("session scores", () => {
     expect(next.round!.board.every((cell) => cell === null)).toBe(true);
   });
 
-  it("preserves scores through leaving and switching modes", () => {
+  it("clears scores through leaving and switching modes", () => {
     const won = play(xWin);
     let state = gameReducer(won, { type: "leave" });
     expect(state.round).toBeNull();
     for (const mode of ["computer", "practice", "friend"] as const) {
       state = start(state, mode);
-      expect(state.scores).toBe(won.scores);
+      expect(state.scores).toEqual(createInitialGameState().scores);
       expect(state.round!.board.every((cell) => cell === null)).toBe(true);
     }
   });

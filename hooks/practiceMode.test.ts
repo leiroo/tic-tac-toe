@@ -154,7 +154,7 @@ describe("Practice Undo and round boundaries", () => {
     expect(play(xWin, reset).scores.practice.X).toBe(1);
   });
 
-  it("mode changes discard history, preserve scores, and start Practice with X", () => {
+  it("mode changes discard history, clear scores, and start Practice with X", () => {
     const won = play(xWin);
     let state = gameReducer(won, { type: "leave" });
     expect(state.round).toBeNull();
@@ -165,7 +165,7 @@ describe("Practice Undo and round boundaries", () => {
     state = gameReducer(state, { type: "enterMode", mode: "practice" });
     state = start(state);
     expect(state.round).toMatchObject({ turn: "X", history: [] });
-    expect(state.scores).toBe(won.scores);
+    expect(state.scores).toEqual(createInitialGameState().scores);
   });
 
   it.each(["friend", "computer"] as const)("does not add Practice selection or Undo to %s", (mode) => {

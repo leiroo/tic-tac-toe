@@ -17,7 +17,7 @@ export default function GameApp() {
   const [selectedPresetId, setSelectedPresetId] = useState<SymbolPresetId>("classic");
   const mainRef = useRef<HTMLElement>(null);
   const game = useTicTacToe();
-  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [dialog, setDialog] = useState<"reset" | "leave" | null>(null);
 
   // Derive display data from the selected IDs instead of duplicating state.
   const mode = gameModes.find((item) => item.id === selectedMode)!;
@@ -45,8 +45,14 @@ export default function GameApp() {
     setCurrentScreen(screen);
   }
 
+  function backToSetup() {
+    const scores = game.round ? game.scores[game.round.mode] : null;
+    if (scores && Object.values(scores).some((score) => score > 0)) setDialog("leave");
+    else leaveGame("setup");
+  }
+
   function goHome() {
-    // Home starts fresh setup preferences; session scores stay in the game hook.
+    // Home ends the match and restores the setup defaults.
     game.leaveGame();
     setSelectedPresetId("classic");
     game.setDifficulty("easy");
@@ -83,7 +89,7 @@ export default function GameApp() {
             onDifficultyChange={game.setDifficulty}
             preset={preset}
             onPresetChange={setSelectedPresetId}
-            onBack={() => setCurrentScreen("modes")}
+            onBack={() => leaveGame("modes")}
             onStart={startGame}
           />
         )}
@@ -95,22 +101,27 @@ export default function GameApp() {
             result={game.result}
             scores={game.scores[game.round.mode]}
             onNewRound={game.newRound}
-            onResetMatch={() => setShowResetDialog(true)}
+            onResetMatch={() => setDialog("reset")}
             onMove={game.playMove}
             onSelectSymbol={game.selectSymbol}
             onUndo={game.undo}
-            onBack={() => leaveGame("setup")}
+            onBack={backToSetup}
             onChangeMode={() => leaveGame("modes")}
           />
         )}
       </main>
 
-      {showResetDialog && (
+      {dialog && (
         <ConfirmDialog
+          purpose={dialog}
           modeName={mode.name}
           isPractice={selectedMode === "practice"}
-          onCancel={() => setShowResetDialog(false)}
-          onConfirm={() => { game.resetMatch(); setShowResetDialog(false); }}
+          onCancel={() => setDialog(null)}
+          onConfirm={() => {
+            if (dialog === "leave") leaveGame("setup");
+            else game.resetMatch();
+            setDialog(null);
+          }}
         />
       )}
 
