@@ -45,6 +45,14 @@ export default function GameApp() {
     setCurrentScreen(screen);
   }
 
+  function goHome() {
+    // Home starts fresh setup preferences; session scores stay in the game hook.
+    game.leaveGame();
+    setSelectedPresetId("classic");
+    game.setDifficulty("easy");
+    setCurrentScreen("home");
+  }
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
@@ -64,7 +72,7 @@ export default function GameApp() {
         {currentScreen === "modes" && (
           <ModeSelectionScreen
             onSelect={chooseMode}
-            onBack={() => setCurrentScreen("home")}
+            onBack={goHome}
           />
         )}
         {currentScreen === "setup" && (
