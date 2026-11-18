@@ -91,7 +91,7 @@ h1:focus {
   }
 
   .mode-card {
-    @apply flex h-full flex-col rounded-2xl border border-muted/20 bg-surface p-4 text-left transition-colors hover:border-cyan/70 aria-pressed:border-cyan/70 aria-pressed:bg-cyan/5;
+    @apply flex h-full flex-col rounded-2xl border border-muted/20 bg-surface p-4 text-left transition-colors hover:border-cyan/70;
   }
 }
 

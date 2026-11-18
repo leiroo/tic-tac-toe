@@ -63,7 +63,6 @@ export default function GameApp() {
         )}
         {currentScreen === "modes" && (
           <ModeSelectionScreen
-            selectedMode={selectedMode}
             onSelect={chooseMode}
             onBack={() => setCurrentScreen("home")}
           />
