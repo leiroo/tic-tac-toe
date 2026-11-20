@@ -17,7 +17,7 @@ export default function GameApp() {
   const [selectedPresetId, setSelectedPresetId] = useState<SymbolPresetId>("classic");
   const mainRef = useRef<HTMLElement>(null);
   const game = useTicTacToe();
-  const [dialog, setDialog] = useState<"reset" | "leave" | null>(null);
+  const [dialog, setDialog] = useState<"reset" | "setup" | "modes" | null>(null);
 
   // Derive display data from the selected IDs instead of duplicating state.
   const mode = gameModes.find((item) => item.id === selectedMode)!;
@@ -45,17 +45,15 @@ export default function GameApp() {
     setCurrentScreen(screen);
   }
 
-  function backToSetup() {
-    const scores = game.round ? game.scores[game.round.mode] : null;
-    if (scores && Object.values(scores).some((score) => score > 0)) setDialog("leave");
-    else leaveGame("setup");
+  function requestExit(destination: "setup" | "modes") {
+    if (game.hasMatchScore) setDialog(destination);
+    else leaveGame(destination);
   }
 
   function goHome() {
     // Home ends the match and restores the setup defaults.
-    game.leaveGame();
+    game.returnHome();
     setSelectedPresetId("classic");
-    game.setDifficulty("easy");
     setCurrentScreen("home");
   }
 
@@ -105,8 +103,8 @@ export default function GameApp() {
             onMove={game.playMove}
             onSelectSymbol={game.selectSymbol}
             onUndo={game.undo}
-            onBack={backToSetup}
-            onChangeMode={() => leaveGame("modes")}
+            onBack={() => requestExit("setup")}
+            onChangeMode={() => requestExit("modes")}
           />
         )}
       </main>
@@ -118,7 +116,7 @@ export default function GameApp() {
           isPractice={selectedMode === "practice"}
           onCancel={() => setDialog(null)}
           onConfirm={() => {
-            if (dialog === "leave") leaveGame("setup");
+            if (dialog !== "reset") leaveGame(dialog);
             else game.resetMatch();
             setDialog(null);
           }}

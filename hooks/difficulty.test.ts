@@ -15,9 +15,7 @@ describe("difficulty selection and rounds", () => {
     state = gameReducer(state, { type: "setDifficulty", difficulty: "hard" });
     state = gameReducer(state, { type: "start", mode, presetId: "love-stars" });
 
-    // The Home handler leaves the round before applying the setup-only setting.
-    state = gameReducer(state, { type: "leave" });
-    state = gameReducer(state, { type: "setDifficulty", difficulty: "easy" });
+    state = gameReducer(state, { type: "home" });
     expect(state.round).toBeNull();
     expect(state.difficulty).toBe("easy");
     expect(state.scores).toEqual(createInitialGameState().scores);

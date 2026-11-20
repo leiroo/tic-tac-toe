@@ -29,7 +29,8 @@ describe("independent starting-player sequences", () => {
     for (const mode of ["friend", "computer", "friend"] as const) {
       state = gameReducer(state, { type: "enterMode", mode });
       expect(state.round).toBeNull();
-      expect(state.scores).toEqual(createInitialGameState().scores);
+      expect(state.scores[mode]).toEqual({ X: 0, O: 0, draws: 0 });
+      expect(state.scores.practice).toEqual({ X: 7, O: 8, draws: 9 });
       state = start(state, mode);
       expect(state.round!.turn).toBe("X");
       state = gameReducer(state, { type: "newRound" });

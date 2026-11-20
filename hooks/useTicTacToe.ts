@@ -12,6 +12,7 @@ export type GameAction =
   | { type: "move"; index: number; player: Player }
   | { type: "computerMove"; index: number; roundId: number; board: Board }
   | { type: "leave" }
+  | { type: "home" }
   | { type: "newRound" }
   | { type: "resetMatch" };
 
@@ -73,12 +74,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         },
       };
     }
+    case "home":
+      return { ...createInitialGameState(), roundId: state.roundId + 1 };
     case "enterMode":
       return {
         ...state,
         round: null,
-        scores: createInitialGameState().scores,
         roundId: state.roundId + 1,
+        scores: { ...state.scores, [action.mode]: { X: 0, O: 0, draws: 0 } },
         nextStarter: action.mode === "practice" ? state.nextStarter : { ...state.nextStarter, [action.mode]: "X" },
       };
     case "setDifficulty":
@@ -88,7 +91,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return startRound(state, action.mode, action.presetId);
     case "leave":
       return { ...state, round: null, roundId: state.roundId + 1,
-        scores: createInitialGameState().scores, nextStarter: { computer: "X", friend: "X" } };
+        scores: round ? { ...state.scores, [round.mode]: { X: 0, O: 0, draws: 0 } } : state.scores,
+        nextStarter: round && round.mode !== "practice" ? { ...state.nextStarter, [round.mode]: "X" } : state.nextStarter };
     case "newRound":
       return round ? startRound(state, round.mode, round.presetId, round.difficulty) : state;
     case "resetMatch": {
@@ -189,6 +193,10 @@ export default function useTicTacToe() {
     if (round) dispatch({ type: "move", index, player: round.mode === "computer" ? "X" : round.turn });
   }
 
+  function returnHome() {
+    dispatch({ type: "home" });
+  }
+
   function leaveGame() {
     dispatch({ type: "leave" });
   }
@@ -209,5 +217,7 @@ export default function useTicTacToe() {
     dispatch({ type: "undo" });
   }
 
-  return { round, scores, result, difficulty: state.difficulty, setDifficulty, enterMode, startGame, playMove, leaveGame, newRound, resetMatch, selectSymbol, undo };
+  const hasMatchScore = round !== null && Object.values(scores[round.mode]).some(score => score > 0);
+
+  return { round, scores, hasMatchScore, result, difficulty: state.difficulty, setDifficulty, enterMode, startGame, playMove, leaveGame, returnHome, newRound, resetMatch, selectSymbol, undo };
 }

@@ -52,3 +52,14 @@ it("renders all modes as neutral navigation buttons", () => {
     expect(html).toContain(`aria-label="${name}"`);
   }
 });
+
+it.each([
+  ["setup", "Return to Setup?", "Returning to setup", "Leave &amp; Reset"],
+  ["modes", "Change Game Mode?", "Changing modes", "Leave &amp; Change Mode"],
+] as const)("explains the consequence of leaving for %s", async (purpose, title, action, confirm) => {
+  const { default: ConfirmDialog } = await import("@/components/ui/ConfirmDialog");
+  const html = renderToStaticMarkup(<ConfirmDialog purpose={purpose} modeName="Friend" isPractice={false} onConfirm={noop} onCancel={noop} />);
+  for (const text of [title, action + " will end your current match and reset your scores. This cannot be undone.", "Keep Playing", confirm]) {
+    expect(html).toContain(text);
+  }
+});

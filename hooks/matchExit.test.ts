@@ -7,11 +7,14 @@ it.each(["computer", "friend", "practice"] as const)("exiting %s clears wins, dr
   let state = gameReducer(createInitialGameState(), { type: "setDifficulty", difficulty: "hard" });
   state = gameReducer(state, { type: "start", mode, presetId: "shapes" });
   state = gameReducer(state, { type: "move", index: 0, player: "X" });
-  state = { ...state, scores: { ...state.scores, [mode]: { X: 2, O: 1, draws: 3 } } };
+  const other = mode === "friend" ? "practice" : "friend";
+  const otherScores = { X: 4, O: 2, draws: 1 };
+  state = { ...state, scores: { ...state.scores, [other]: otherScores, [mode]: { X: 2, O: 1, draws: 3 } } };
   const left = gameReducer(state, { type: "leave" });
   expect(left.round).toBeNull();
   expect(left.difficulty).toBe("hard");
-  expect(left.scores).toEqual(createInitialGameState().scores);
+  expect(left.scores[mode]).toEqual({ X: 0, O: 0, draws: 0 });
+  expect(left.scores[other]).toEqual(otherScores);
   expect(left.nextStarter).toEqual({ computer: "X", friend: "X" });
   const reentered = gameReducer(left, { type: "start", mode, presetId: "shapes" });
   expect(reentered.round).toMatchObject({ turn: "X", history: [], presetId: "shapes", difficulty: "hard" });
